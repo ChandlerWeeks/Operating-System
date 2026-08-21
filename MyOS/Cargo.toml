@@ -1,0 +1,17 @@
+[package]
+name = "cosc562os"
+version = "0.1.0"
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.release]
+opt-level = 1
+lto = true
+debug = true
+codegen-units = 1
+panic = 'abort'
+overflow-checks = false
+incremental = false
+
+[dependencies]
