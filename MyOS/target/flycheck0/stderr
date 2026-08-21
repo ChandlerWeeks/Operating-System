@@ -1,18 +1,18 @@
-   0.004988625s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint: fingerprint error for cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS)/Check { test: false }/TargetInner { name: "cosc562os", doc: true, ..: with_path("/Users/chandler/Desktop/COSC562/MyOS/src/main.rs", Edition2024) }
-   0.005574666s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/chandler/Desktop/COSC562/MyOS/target/debug/.fingerprint/cosc562os-eb777b76f79f918c/bin-cosc562os`
+   0.008192417s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint: fingerprint error for cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS)/Check { test: false }/TargetInner { name: "cosc562os", doc: true, ..: with_path("/Users/chandler/Desktop/COSC562/MyOS/src/main.rs", Edition2024) }
+   0.008529792s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/chandler/Desktop/COSC562/MyOS/target/debug/.fingerprint/cosc562os-c999d73aa2b54bf2/bin-cosc562os`
 
 Caused by:
     No such file or directory (os error 2)
 
 Stack backtrace:
-   0: std::backtrace::Backtrace::create
-   1: cargo_util::paths::read_bytes
-   2: cargo_util::paths::read
-   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
-   4: cargo::core::compiler::fingerprint::prepare_target
-   5: cargo::core::compiler::compile
-   6: <cargo::core::compiler::build_runner::BuildRunner>::compile
-   7: cargo::ops::cargo_compile::compile_ws
+   0: <std::backtrace::Backtrace>::create
+   1: <std::backtrace::Backtrace>::capture
+   2: cargo_util::paths::read_bytes
+   3: cargo_util::paths::read
+   4: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   5: cargo::core::compiler::fingerprint::prepare_target
+   6: cargo::core::compiler::compile
+   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
    8: cargo::ops::cargo_compile::compile_with_exec
    9: cargo::ops::cargo_compile::compile
   10: cargo::commands::check::exec
@@ -22,21 +22,21 @@ Stack backtrace:
   14: std::rt::lang_start::<()>::{closure#0}
   15: std::rt::lang_start_internal
   16: _main
-   0.035059416s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint: fingerprint error for cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS)/Check { test: true }/TargetInner { name: "cosc562os", doc: true, ..: with_path("/Users/chandler/Desktop/COSC562/MyOS/src/main.rs", Edition2024) }
-   0.035068375s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/chandler/Desktop/COSC562/MyOS/target/debug/.fingerprint/cosc562os-36c420255032d6b6/test-bin-cosc562os`
+   0.031079500s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint: fingerprint error for cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS)/Check { test: true }/TargetInner { name: "cosc562os", doc: true, ..: with_path("/Users/chandler/Desktop/COSC562/MyOS/src/main.rs", Edition2024) }
+   0.031087833s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/chandler/Desktop/COSC562/MyOS/target/debug/.fingerprint/cosc562os-40ca6cc2d8eb16cb/test-bin-cosc562os`
 
 Caused by:
     No such file or directory (os error 2)
 
 Stack backtrace:
-   0: std::backtrace::Backtrace::create
-   1: cargo_util::paths::read_bytes
-   2: cargo_util::paths::read
-   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
-   4: cargo::core::compiler::fingerprint::prepare_target
-   5: cargo::core::compiler::compile
-   6: <cargo::core::compiler::build_runner::BuildRunner>::compile
-   7: cargo::ops::cargo_compile::compile_ws
+   0: <std::backtrace::Backtrace>::create
+   1: <std::backtrace::Backtrace>::capture
+   2: cargo_util::paths::read_bytes
+   3: cargo_util::paths::read
+   4: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   5: cargo::core::compiler::fingerprint::prepare_target
+   6: cargo::core::compiler::compile
+   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
    8: cargo::ops::cargo_compile::compile_with_exec
    9: cargo::ops::cargo_compile::compile
   10: cargo::commands::check::exec
@@ -47,6 +47,6 @@ Stack backtrace:
   15: std::rt::lang_start_internal
   16: _main
     Checking cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS)
-error: could not compile `cosc562os` (bin "cosc562os" test) due to 4 previous errors; 1 warning emitted
+error: could not compile `cosc562os` (bin "cosc562os" test) due to 2 previous errors; 1 warning emitted
 warning: build failed, waiting for other jobs to finish...
-error: could not compile `cosc562os` (bin "cosc562os") due to 5 previous errors; 1 warning emitted
+error: could not compile `cosc562os` (bin "cosc562os") due to 14 previous errors; 2 warnings emitted
