@@ -1,0 +1,12 @@
+[build]
+target = "riscv64gc-unknown-none-elf"
+
+[target.riscv64gc-unknown-none-elf]
+runner = "./run.sh "
+rustflags = ["-C", "link-arg=-Triscv64gc-virt.ld"]
+
+[term]
+quiet = false
+verbose = true
+color = 'auto'
+

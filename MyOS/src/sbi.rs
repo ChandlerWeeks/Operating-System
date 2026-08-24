@@ -21,7 +21,7 @@ macro_rules! sbicall {
                     in("a7") extension_id,
                     in("a6") function_id,
                     lateout("a0") error,
-                    lateout("a1") value,
+                    lateout("a1") value
                 )
             }
         (error, value)
