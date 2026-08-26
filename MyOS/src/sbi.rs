@@ -172,3 +172,79 @@ pub fn get_spec_version() -> (u32, u32) {
     let minor = result & 0xFF_FFFF;
     (major as u32, minor as u32)
 }
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, Default)]
+pub struct WakeFrame {
+    pub sepc: usize,     // 0
+    pub sstatus: usize,  // 8
+    pub sie: usize,      // 16
+    pub satp: usize,     // 24
+    pub sscratch: usize, // 32
+    pub stvec: usize,    // 40
+    pub stack: usize,    // 48
+    pub page: usize,     // 56 (the WakeFrame's page address)
+}
+
+pub fn hart_start(hartID: u64, physicalStartAddress: u64, wakeFrameAddress: u64) {
+    let extensionId =  0x48534d;
+    let functionId = 0;
+    sbicall!((extensionId, functionId), hartID, physicalStartAddress, wakeFrameAddress)
+}
+
+pub fn hart_stop() {
+    let extensionId =  0x48534d;
+    let functionId = 1;
+    sbicall!((extensionId, functionId))
+}
+
+pub fn hart_status(hartID: u64) {
+    let extensionId =  0x48534d;
+    let functionId = 2;
+    sbicall!((extensionId, functionId), hartID)
+}
+
+pub fn hart_suspend(suspendType: u64) {
+    let extensionId =  0x48534d;
+    let functionId = 3;
+    sbicall!((extensionId, functionId), suspendType)
+}
+
+#[repr(i64)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, PartialOrd, Ord)]
+pub enum HartState {
+    Started = 0,
+    Stopped = 1,
+    StartPending = 2,
+    StopPending = 3,
+    Suspended = 4,
+    SuspendPending = 5,
+    ResumePending = 6,
+}
+
+impl From<u64> for HartState {
+    fn from(value: u64) -> Self {
+        match value {
+            0 => HartState::Started,
+            1 => HartState::Stopped,
+            2 => HartState::StartPending,
+            3 => HartState::StopPending,
+            4 => HartState::Suspended,
+            5 => HartState::SuspendPending,
+            6 => HartState::ResumePending,
+        }
+    }
+}
+
+
+pub fn reboot() -> ! {
+    sbicall!((0x53525354, 0), 2, 0);
+    debugln!("ERROR: REBOOT RETURNED!");
+    hart_stop();
+}
+
+pub fn poweroff() -> {
+    sbicall!((0x53525354, 0), 0, 0);
+    debugln!("ERROR: REBOOT RETURNED!");
+    hart_stop();
+}
