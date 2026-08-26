@@ -50,11 +50,16 @@ unsafe extern "C" fn _start() -> ! {
     }
 
     main();
-    panic!("Main returned!");
 }
 
 fn main() {
     // Write startup code here
+    println!("Hello World");
+    loop {
+        unsafe {
+            core::arch::asm!("wfi");
+        }
+    }
 }
 
 // ============================================================================

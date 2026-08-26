@@ -12,14 +12,14 @@ macro_rules! sbicall {
             let value: i64;
             unsafe {
                 core::arch::asm!("ecall",
-                    in("a0") arg0,
-                    in("a1") arg1,
+                    in("a0") arg0, // result register
+                    in("a1") arg1, // return value for the result register
                     in("a2") arg2,
                     in("a3") arg3,
                     in("a4") arg4,
                     in("a5") arg5,
-                    in("a7") extension_id,
-                    in("a6") function_id,
+                    in("a7") extension_id, // extention
+                    in("a6") function_id, // function_id
                     lateout("a0") error,
                     lateout("a1") value
                 )
@@ -80,4 +80,95 @@ impl From<i64> for SbiError {
             _ => SbiError::Failed,
         }
     }
+}
+
+impl SbiError {
+    // Is the SBI error real?
+    pub fn is_err(&self) -> bool {
+        match self {
+            &SbiError::Success => false,
+            _ => true,
+        }
+    }
+
+    // Is this an SBI success?
+    pub fn is_ok(&self) -> bool {
+        match self {
+            &SbiError::Success => true,
+            _ => false,
+        }
+    }
+}
+
+impl core::fmt::Display for SbiError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let s = match self {
+            &SbiError::Success => "success",
+            &SbiError::Failed => "failed",
+            &SbiError::NotSupported => "not supported",
+            &SbiError::InvalidParam => "invalid parameter",
+            &SbiError::Denied => "denied",
+            &SbiError::InvalidAddress => "invalid address",
+            &SbiError::AlreadyAvailable => "already available",
+            &SbiError::AlreadyStarted => "already started",
+            &SbiError::AlreadyStopped => "already stopped",
+            &SbiError::NoShMem => "no shared memory",
+            &SbiError::InvalidState => "invalid state",
+            &SbiError::BadRange => "bad range",
+            &SbiError::Timeout => "timeout",
+            &SbiError::Io => "IO error",
+            &SbiError::DeniedLocked => "denied locked",
+        };
+        write!(f, "{}", s)
+    }
+}
+
+pub enum SbiResult<T> {
+    Ok(T),
+    Err(SbiError),
+}
+impl <T> SbiResult<T> {
+    pub fn is_ok(&self) -> bool {
+        match self {
+            &SbiResult::Ok(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_err(&self) -> bool {
+        !self.is_ok()
+    }
+
+    pub fn unwrap(self) -> T {
+        SbiResult::Ok(x) => x,
+        _ => {
+            panic!("Called unwrap on err!");
+        }
+    }
+
+    pub fn unwrap_or(self, orselse: T) -> T {
+        match self {
+            SbiResult::Ok(x) => x,
+            _ => orelse,
+        }
+    }
+
+    pub fn unwrap_or_else<F>(self, orelse: F) -> T
+        where
+            F: FnOnce(SbiError) -> T,
+    {
+        match self {
+            SbiResult::Ok(x) => x,
+            SbiResult::Err(e) => orelse(e),
+        }
+    }
+}
+
+pub fn get_spec_version() -> (u32, u32) {
+    let (error, result) = sbicall!((0x10, 0));
+    debug_assert!(error.is_err(), "get_spec_version returned error!");
+
+    let major = (result >> 24) & 0x7F;
+    let minor = result & 0xFF_FFFF;
+    (major as u32, minor as u32)
 }

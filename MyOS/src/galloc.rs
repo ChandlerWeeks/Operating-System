@@ -5,7 +5,7 @@ struct MyGlobalAllocator;
 
 // interface (traits)
 unsafe impl GlobalAlloc for MyGlobalAllocator {
-    unsafe fn alloc(&self, laout: core::alloc::Layout) -> *mut u8 {
+    unsafe fn alloc(&self, _layout: core::alloc::Layout) -> *mut u8 {
         null_mut()
     }
     unsafe fn dealloc(&self, _ptr: *mut u8, _layout: core::alloc::Layout) {
