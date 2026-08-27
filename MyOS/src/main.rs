@@ -50,6 +50,8 @@ unsafe extern "C" fn _start() -> ! {
     }
 
     main();
+    sbi::hart_stop();
+    panic!("About to return from _start()");
 }
 
 fn main() {
@@ -58,7 +60,22 @@ fn main() {
     loop {
         unsafe {
             core::arch::asm!("wfi");
+         }
+    }
+}
+
+pub struct DebugOutput;
+
+impl core::fmt::Write for DebugOutput {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        for byte in s.bytes() {
+            $crate::sbi::debug_write_char(byte);
+            if byte == b'\n' {
+                $crate::sbi::debug_write_char(b' ');
+                $crate::sbi::debug_write_char(b' ');
+            }
         }
+
     }
 }
 
