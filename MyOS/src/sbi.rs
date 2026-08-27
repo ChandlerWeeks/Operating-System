@@ -140,13 +140,15 @@ impl <T> SbiResult<T> {
     }
 
     pub fn unwrap(self) -> T {
-        SbiResult::Ok(x) => x,
-        _ => {
-            panic!("Called unwrap on err!");
+        match self {
+            SbiResult::Ok(x) => x,
+            _ => {
+                panic!("Called unwrap on err!");
+            }
         }
     }
 
-    pub fn unwrap_or(self, orselse: T) -> T {
+    pub fn unwrap_or(self, orelse: T) -> T {
         match self {
             SbiResult::Ok(x) => x,
             _ => orelse,
@@ -186,28 +188,30 @@ pub struct WakeFrame {
     pub page: usize,     // 56 (the WakeFrame's page address)
 }
 
-pub fn hart_start(hartID: u64, physicalStartAddress: u64, wakeFrameAddress: u64) {
-    let extensionId =  0x48534d;
-    let functionId = 0;
-    sbicall!((extensionId, functionId), hartID, physicalStartAddress, wakeFrameAddress)
+pub fn hart_start(hart_id: u64, physical_start_address: usize, wake_frame_address: usize) -> (i64, i64) {
+    let extension_id =  0x48534d;
+    let function_id = 0;
+    sbicall!((extension_id, function_id), hart_id, physical_start_address, wake_frame_address)
 }
 
-pub fn hart_stop() {
-    let extensionId =  0x48534d;
-    let functionId = 1;
-    sbicall!((extensionId, functionId))
+pub fn hart_stop() -> ! {
+    let extension_id =  0x48534d;
+    let function_id = 1;
+    sbicall!((extension_id, function_id));
+    panic!("hart suspended uncessfully");
 }
 
-pub fn hart_status(hartID: u64) {
-    let extensionId =  0x48534d;
-    let functionId = 2;
-    sbicall!((extensionId, functionId), hartID)
+pub fn hart_status(hart_id: usize) -> (i64, i64) {
+    let extension_id =  0x48534d;
+    let function_id = 2;
+    sbicall!((extension_id, function_id), hart_id)
 }
 
-pub fn hart_suspend(suspendType: u64) {
-    let extensionId =  0x48534d;
-    let functionId = 3;
-    sbicall!((extensionId, functionId), suspendType)
+pub fn hart_suspend(suspend_type: usize) {
+    let extension_id =  0x48534d;
+    let function_id = 3;
+    sbicall!((extension_id, function_id), suspend_type);
+    panic!("hart suspended uncessfully");
 }
 
 #[repr(i64)]
@@ -222,20 +226,21 @@ pub enum HartState {
     ResumePending = 6,
 }
 
-impl From<u64> for HartState {
-    fn from(value: u64) -> Self {
+
+impl HartState {
+    fn from_u64(value: u64) -> SbiResult<HartState> {
         match value {
-            0 => HartState::Started,
-            1 => HartState::Stopped,
-            2 => HartState::StartPending,
-            3 => HartState::StopPending,
-            4 => HartState::Suspended,
-            5 => HartState::SuspendPending,
-            6 => HartState::ResumePending,
+            0 => SbiResult::Ok(HartState::Started),
+            1 => SbiResult::Ok(HartState::Stopped),
+            2 => SbiResult::Ok(HartState::StartPending),
+            3 => SbiResult::Ok(HartState::StopPending),
+            4 => SbiResult::Ok(HartState::Suspended),
+            5 => SbiResult::Ok(HartState::SuspendPending),
+            6 => SbiResult::Ok(HartState::ResumePending),
+            _ => SbiResult::Err(SbiError::InvalidState),
         }
     }
 }
-
 
 pub fn reboot() -> ! {
     sbicall!((0x53525354, 0), 2, 0);
@@ -243,8 +248,9 @@ pub fn reboot() -> ! {
     hart_stop();
 }
 
-pub fn poweroff() -> {
+pub fn poweroff() -> ! {
     sbicall!((0x53525354, 0), 0, 0);
     debugln!("ERROR: REBOOT RETURNED!");
     hart_stop();
 }
+
