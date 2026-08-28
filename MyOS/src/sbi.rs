@@ -81,6 +81,11 @@ impl From<i64> for SbiError {
         }
     }
 }
+impl From<SbiError> for i64 {
+    fn from(value:SbiError) -> Self {
+        -(value as i64)
+    }
+}
 
 impl SbiError {
     // Is the SBI error real?
@@ -167,7 +172,8 @@ impl <T> SbiResult<T> {
 }
 
 pub fn get_spec_version() -> (u32, u32) {
-    let (error, result) = sbicall!((0x10, 0));
+    let (raw_error, result) = sbicall!((0x10, 0));
+    let error = SbiError::from(raw_error);
     debug_assert!(error.is_err(), "get_spec_version returned error!");
 
     let major = (result >> 24) & 0x7F;
@@ -244,13 +250,13 @@ impl HartState {
 
 pub fn reboot() -> ! {
     sbicall!((0x53525354, 0), 2, 0);
-    debugln!("ERROR: REBOOT RETURNED!");
+    crate::debugln!("ERROR: REBOOT RETURNED!");
     hart_stop();
 }
 
 pub fn poweroff() -> ! {
     sbicall!((0x53525354, 0), 0, 0);
-    debugln!("ERROR: REBOOT RETURNED!");
+    crate::debugln!("ERROR: REBOOT RETURNED!");
     hart_stop();
 }
 
