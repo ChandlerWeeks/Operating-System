@@ -50,14 +50,13 @@ unsafe extern "C" fn _start() -> ! {
             options(nostack, nomem),
         );
     }
-
     main();
     sbi::hart_stop();
     panic!("About to return from _start()");
 }
 
 fn main() {
-    // Write startup code here
+    // Clear the screen, and test debugln!, println!, and power off the system. 
     clear_screen();
     println!("Hello World");
     debugln!("Kernel activate beep boop");

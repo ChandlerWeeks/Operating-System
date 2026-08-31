@@ -1,5 +1,9 @@
-
+/// SBI call: runs the RISC-V SBI, which is handled by SBI firmware. 
 macro_rules! sbicall {
+    /// Inputs:
+    ///
+    /// id: a tuple containing the function id and extension id
+    /// a{0..5} optional arguement registers for different SBI calls. 
     ($id:expr, $a0:expr, $a1:expr, $a2:expr, $a3:expr, $a4:expr, $a5:expr) => ({
             let arg0 = {$a0};
             let arg1 = {$a1};
@@ -10,7 +14,9 @@ macro_rules! sbicall {
             let (extension_id, function_id) = $id;
             let error: i64;
             let value: i64;
+            // ecall is unsafe
             unsafe {
+                /// executes the ecall instruction, which requests elevated permissions 
                 core::arch::asm!("ecall",
                     in("a0") arg0, // result register
                     in("a1") arg1, // return value for the result register
@@ -27,10 +33,13 @@ macro_rules! sbicall {
         (error, value)
         }
     );
+    /// Allows none or some arguements, allowing the SBIcall to work with 0 to 6 arguements. 
     ($id:expr $(, $args:expr)*) => (
         sbicall!($id $(, $args)*, 0)
     );
 }
+
+/// SBICall: Write a byte (character) to the debug console
 pub fn debug_write_char(c: u8) {
     let extid = 0x4442_434E;
     let funcid = 2;
@@ -81,14 +90,17 @@ impl From<i64> for SbiError {
         }
     }
 }
+
+/// Convert an SbiError back into an integer as an i64
 impl From<SbiError> for i64 {
     fn from(value:SbiError) -> Self {
         -(value as i64)
     }
 }
 
+/// Implementation of the SbiError enum 
 impl SbiError {
-    // Is the SBI error real?
+    /// Check for SBI error
     pub fn is_err(&self) -> bool {
         match self {
             &SbiError::Success => false,
@@ -96,7 +108,7 @@ impl SbiError {
         }
     }
 
-    // Is this an SBI success?
+    /// Check for SBI success
     pub fn is_ok(&self) -> bool {
         match self {
             &SbiError::Success => true,
@@ -105,6 +117,7 @@ impl SbiError {
     }
 }
 
+/// Format SbiErrors into a readable format
 impl core::fmt::Display for SbiError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let s = match self {
@@ -128,22 +141,26 @@ impl core::fmt::Display for SbiError {
     }
 }
 
+/// Format of a SBI call result. Either Ok or Err result
 pub enum SbiResult<T> {
     Ok(T),
     Err(SbiError),
 }
+/// implementation of the SbiResult enum
 impl <T> SbiResult<T> {
+    /// returns weather the SbiResult is Ok()
     pub fn is_ok(&self) -> bool {
         match self {
             &SbiResult::Ok(_) => true,
             _ => false,
         }
     }
-
+    /// checks for an error using the SbiResult
     pub fn is_err(&self) -> bool {
         !self.is_ok()
     }
 
+    /// Extract the result from an SBI success using the enum. Panic on failure.
     pub fn unwrap(self) -> T {
         match self {
             SbiResult::Ok(x) => x,
@@ -153,6 +170,7 @@ impl <T> SbiResult<T> {
         }
     }
 
+    /// Extract the result from an Sbi success using the enum. Also handles extracting errors
     pub fn unwrap_or(self, orelse: T) -> T {
         match self {
             SbiResult::Ok(x) => x,
@@ -160,6 +178,7 @@ impl <T> SbiResult<T> {
         }
     }
 
+    /// returns a SBI success value, or calls a function to generate a replacement. 
     pub fn unwrap_or_else<F>(self, orelse: F) -> T
         where
             F: FnOnce(SbiError) -> T,
