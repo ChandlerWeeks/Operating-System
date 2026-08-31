@@ -1,5 +1,5 @@
-   0.070409292s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint: fingerprint error for cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS)/Check { test: false }/TargetInner { name: "cosc562os", doc: true, ..: with_path("/Users/chandler/Desktop/COSC562/MyOS/src/main.rs", Edition2024) }
-   0.070695959s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/chandler/Desktop/COSC562/MyOS/target/riscv64gc-unknown-none-elf/debug/.fingerprint/cosc562os-97b4abd0d903bd82/bin-cosc562os`
+   0.069034250s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint: fingerprint error for cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS)/Check { test: false }/TargetInner { name: "cosc562os", doc: true, ..: with_path("/Users/chandler/Desktop/COSC562/MyOS/src/main.rs", Edition2024) }
+   0.069372291s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/chandler/Desktop/COSC562/MyOS/target/riscv64gc-unknown-none-elf/debug/.fingerprint/cosc562os-97b4abd0d903bd82/bin-cosc562os`
 
 Caused by:
     No such file or directory (os error 2)
@@ -22,8 +22,8 @@ Stack backtrace:
   14: std::rt::lang_start::<()>::{closure#0}
   15: std::rt::lang_start_internal
   16: _main
-   0.084455334s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint: fingerprint error for cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS)/Check { test: true }/TargetInner { name: "cosc562os", doc: true, ..: with_path("/Users/chandler/Desktop/COSC562/MyOS/src/main.rs", Edition2024) }
-   0.084460334s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/chandler/Desktop/COSC562/MyOS/target/riscv64gc-unknown-none-elf/debug/.fingerprint/cosc562os-ed28eda6a2cf2726/test-bin-cosc562os`
+   0.082883083s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint: fingerprint error for cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS)/Check { test: true }/TargetInner { name: "cosc562os", doc: true, ..: with_path("/Users/chandler/Desktop/COSC562/MyOS/src/main.rs", Edition2024) }
+   0.082888791s  INFO prepare_target{force=false package_id=cosc562os v0.1.0 (/Users/chandler/Desktop/COSC562/MyOS) target="cosc562os"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/chandler/Desktop/COSC562/MyOS/target/riscv64gc-unknown-none-elf/debug/.fingerprint/cosc562os-ed28eda6a2cf2726/test-bin-cosc562os`
 
 Caused by:
     No such file or directory (os error 2)

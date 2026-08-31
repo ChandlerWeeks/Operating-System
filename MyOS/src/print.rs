@@ -1,6 +1,17 @@
 
+/// # Kernel's output structure
 
 pub struct KernelOut;
+/// processes each byte (character) in a string and outputs it using the SBI
+///
+/// Inputs:
+///
+/// - **s**: the string to be output
+///
+/// Return:
+///
+/// - **Result**: Successful run of the function
+///
 impl core::fmt::Write for KernelOut {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for c in s.bytes() {
@@ -10,6 +21,9 @@ impl core::fmt::Write for KernelOut {
     }
 }
 
+/// # Print Macro
+///
+/// Uses the write trait to output a line of text
 #[macro_export]
 macro_rules! print {
     ($($args:tt)+) => ({
