@@ -1,4 +1,4 @@
-
+//! Kernek Output
 /// # Kernel's Output
 pub struct KernelOut;
 /// implements the write trait from core::fmt for KernelOut, 
@@ -39,17 +39,20 @@ macro_rules! print {
 /// # Print Line Macro
 ///
 /// Uses the print macro to print a line of text
+///
+/// Input Options:
+///
+/// () => outputs a newline character and nothing else
+/// ($fmt:expr) => outputs one string and a newline character
+/// ($fmt:expr, $($args:tt)+) =>  ouputs a string and a newline character, allowing for formatted data within the string. 
 #[macro_export]
 macro_rules! println {
-    /// outputs a newline character and nothing else;
     () => (
         print!("\r\n")
     );
-    /// outputs one string and a newline character
     ($fmt:expr) => (
         print!(concat!($fmt, "\r\n"))
     );
-    /// ouputs a string and a newline character, allowing for formatted data within the string. 
     ($fmt:expr, $($args:tt)+) => (
         print!(concat!($fmt, "\r\n"), $($args)+)
     );
@@ -77,7 +80,7 @@ impl core::fmt::Write for DebugOutput {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for byte in s.bytes() {
             crate::sbi::debug_write_char(byte);
-            /// auto indent on a new line for debugging lines.
+            // auto indent on a new line for debugging lines.
             if byte == b'\n' {
                 crate::sbi::debug_write_char(b' ');
                 crate::sbi::debug_write_char(b' ');
@@ -91,7 +94,7 @@ impl core::fmt::Write for DebugOutput {
 #[macro_export]
 macro_rules! debugln
 {
-    /// No message: print a file name and line number
+    // No message: print a file name and line number
     () => ({
         const LINE: u32 = line!();
         const FILE: &'static str = $crate::print::file_name(file!());
@@ -99,7 +102,7 @@ macro_rules! debugln
         let mut x = $crate::print::DebugOutput; let _ = write!(x, "[\x1b[96m{:<12} @ {:>4}\x1B[0m]", FILE, LINE);
         $crate::sbi::debug_write_char(b'\n');
     });
-    /// Takes one or many arguements as a message: Prints a message and a file name with a line number
+    // Takes one or many arguements as a message: Prints a message and a file name with a line number
     ($($args:tt)+) => ({
         const LINE: u32 = line!();
         const FILE: &'static str = $crate::print::file_name(file!());

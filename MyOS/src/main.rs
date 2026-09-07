@@ -1,13 +1,14 @@
 //! # COSC562 Fall 2026 Operating System
 //!
-//! <Your Name>
-//! 17 August 2026
+//! This serves to load the kernel.
+//!
+//! Jason Weeks - jweeks12
+//! September 7th, 2026
 #![no_std]
 #![no_main]
 
 use crate::print::clear_screen;
 
-#[macro_use]
 extern crate alloc;
 
 // ============================================================================
@@ -33,9 +34,8 @@ fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
 // ============================================================================
 
 /// # Entry point
-/// 
+///
 /// Coming from the Limine boot loader, we are in S-mode with the MMU turned on.
-/// We do not have: {`stvec, sie, sstatus`}.
 #[unsafe(no_mangle)]
 unsafe extern "C" fn _start() -> ! {
     unsafe extern "C" {
@@ -43,6 +43,7 @@ unsafe extern "C" fn _start() -> ! {
         unsafe static __GLOBAL_POINTER: u8;
     }
 
+    /// set the global pointer
     unsafe {
         core::arch::asm!(
             "la gp, {address}",
@@ -52,15 +53,16 @@ unsafe extern "C" fn _start() -> ! {
     }
     main();
     sbi::hart_stop();
-    panic!("About to return from _start()");
 }
 
 fn main() {
-    // Clear the screen, and test debugln!, println!, and power off the system. 
+    // Clear the screen, and test debugln!, println!, and power off the system.
     clear_screen();
     println!("Hello World");
+    let (major, minor) = sbi::get_spec_version();
+    println!("Major: {}, Minor: {}", major, minor);
     debugln!("Kernel activate beep boop");
-    sbi::poweroff();
+    sbi::shutdown();
 }
 
 // ============================================================================
@@ -69,4 +71,4 @@ fn main() {
 
 pub mod print;
 pub mod sbi;
-pub mod galloc; 
+pub mod galloc;

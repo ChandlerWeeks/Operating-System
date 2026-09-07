@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["HartState","SbiError","SbiResult"],"fn":["debug_write_char","get_spec_version","hart_start","hart_status","hart_stop","hart_suspend","poweroff","reboot"],"macro":[["sbicall",1]],"struct":["WakeFrame"]};
+window.SIDEBAR_ITEMS = {"enum":["HartState","SbiError","SbiResult"],"fn":["debug_write_char","get_spec_version","hart_start","hart_status","hart_stop","hart_suspend","reboot","shutdown"],"macro":[["sbicall",1]],"struct":["WakeFrame"]};
