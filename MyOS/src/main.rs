@@ -72,3 +72,6 @@ fn main() {
 pub mod print;
 pub mod sbi;
 pub mod galloc;
+pub mod limine;
+pub mod config;
+pub mod acpi; 

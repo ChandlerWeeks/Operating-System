@@ -4,7 +4,7 @@
 /// Inputs:
 ///
 /// id: a tuple containing the function id (a6) and extension id (a7):
-/// a{0..=5} optional arguement registers for different SBI calls. 
+/// a{2..=5} optional arguement registers for different SBI calls. 
 /// a0 represents the SBI error result
 /// a1 represents the SBI value result
 macro_rules! sbicall {
