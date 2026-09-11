@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["_start","main","panic"],"macro":[["debugln",1],["print",1],["println",1]],"mod":["galloc","print","sbi"]};

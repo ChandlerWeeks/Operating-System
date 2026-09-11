@@ -1,3 +1,6 @@
+use core::sync::atomic::{AtomicPtr, Ordering};
+use crate::config;
+
 /// Common prefix shared by all Limine requests.
 const COMMON_MAGIC: [u64; 2] = [0xc7b1dd30df4c8b88, 0x0a82e883a194f07b];
 
@@ -57,7 +60,7 @@ mod paging_modes {
     pub const SV48: u64 = 1;
     // pub const SV57: u64 = 2;
 
-    pub const PREFERED: u64 = SV48;
+    pub const PREFERRED: u64 = SV48;
     pub const MIN: u64 = SV48;
     pub const MAX: u64 = SV48;
 }
@@ -133,6 +136,14 @@ fn hhdm_virt_to_phys(vaddr: usize) -> usize {
 }
 
 #[repr(C)]
+/// Requests the physical and virtual addresses of the loaded kernel image.
+struct ExecutableAddressRequest {
+    id: [u64; 4],
+    revision: u64,
+    response: AtomicPtr<ExecutableAddressResponse>,
+}
+
+#[repr(C)]
 /// Contains the physical and virtual bases of the loaded kernel image.
 struct ExecutableAddressResponse {
     revision: u64,
@@ -192,7 +203,7 @@ pub fn pa_to_va(addr: usize) -> usize {
     }
     if addr < 0x8000_0000 {
         // This is an MMIO address.
-        return KERNEL_IO_ADDR + addr;
+        return config::KERNEL_IO_ADDR + addr;
     }
     // HHDM mapped virtual address
     hhdm_phys_to_virt(addr)

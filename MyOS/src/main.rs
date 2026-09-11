@@ -43,8 +43,8 @@ unsafe extern "C" fn _start() -> ! {
         unsafe static __GLOBAL_POINTER: u8;
     }
 
-    /// set the global pointer
     unsafe {
+        /// set the global pointer
         core::arch::asm!(
             "la gp, {address}",
             address = sym __GLOBAL_POINTER,

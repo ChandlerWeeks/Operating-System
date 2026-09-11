@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["clear_screen","file_name"],"struct":["DebugOutput","KernelOut"]};
