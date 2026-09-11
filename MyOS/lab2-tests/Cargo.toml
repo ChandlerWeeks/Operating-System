@@ -1,0 +1,12 @@
+[package]
+name = "myos-lab2-tests"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+# Keep this host-side acceptance suite separate from the bare-metal kernel.
+[workspace]
+

@@ -1,0 +1,13 @@
+[package]
+name = "myos-lab2-riscv-guest"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[[test]]
+name = "riscv_guest"
+path = "tests/riscv_guest.rs"
+harness = false
+
+[workspace]
+

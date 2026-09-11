@@ -1,0 +1,5 @@
+[build]
+# Override MyOS/.cargo/config.toml. Rust's standard test harness is not
+# available for riscv64gc-unknown-none-elf.
+target = "aarch64-apple-darwin"
+

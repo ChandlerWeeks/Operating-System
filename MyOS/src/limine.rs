@@ -31,9 +31,13 @@ const SMBIOS_ID: [u64; 2] = [0x9e9046f11e095391, 0xaa4a520fefbde5ee];
 // const MP_ID: [u64; 2] = [0x95a67b819a1b857e, 0xa0b61b723b6a73e0];
 const CMD_LINE_ID: [u64; 2] = [0x4b161536e598651e, 0xb390ad4a2f1f303a];
 
+/// Combines Limine's common magic values with a request-specific ID.
 const fn make_id(specific: [u64; 2]) -> [u64; 4] {
     [COMMON_MAGIC[0], COMMON_MAGIC[1], specific[0], specific[1]]
 }
+
+/// Requests an 8 KiB stack for each hart.
+const LIMINE_STACK_SIZE: u64 = 8192;
 
 #[used]
 #[unsafe(link_section = ".limine_requests_start")]
@@ -46,18 +50,21 @@ static REQUESTS_START: [u64; 4] = REQUESTS_START_MAGIC;
 static REQUESTS_END: [u64; 2] = REQUESTS_END_MAGIC;
 
 #[cfg(target_arch = "riscv64")]
-#[allow(dead_code)]
+/// Set the valid paging modes, but use SV48. SV39 and SV57 are commented out to avoid warnings,
+/// without supressing them. 
 mod paging_modes {
-    pub const SV39: u64 = 0;
+    // pub const SV39: u64 = 0;
     pub const SV48: u64 = 1;
-    pub const SV57: u64 = 2;
+    // pub const SV57: u64 = 2;
 
     pub const PREFERED: u64 = SV48;
     pub const MIN: u64 = SV48;
-    pub const MAX = u64 = SV48;
+    pub const MAX: u64 = SV48;
 }
 
 #[repr(C)]
+/// reqest the minimum acceptable, maximum acceptable, and prefered paging mode. In our OS, this is
+/// SV48. 
 struct PagingModeRequest {
     id: [u64; 4],
     revision: u64,
@@ -69,6 +76,7 @@ struct PagingModeRequest {
 
 #[used]
 #[unsafe(link_section = ".limine_requests")]
+/// Requests Sv48 paging mode from Limine.
 static PAGING_MODE_REQUEST: PagingModeRequest = PagingModeRequest {
     id: make_id(PAGING_MODE_ID),
     // Revision 1 adds max_mode and min_mode. Without revision 1, Limine
@@ -82,6 +90,7 @@ static PAGING_MODE_REQUEST: PagingModeRequest = PagingModeRequest {
 };
 
 #[repr(C)]
+/// Requests Limine's higher-half direct-map offset.
 struct HhdmRequest {
     id: [u64; 4],
     revision: u64,
@@ -89,6 +98,7 @@ struct HhdmRequest {
 }
 
 #[repr(C)]
+/// Contains the higher-half direct-map offset returned by Limine.
 struct HhdmResponse {
     revision: u64,
     offset: u64,
@@ -96,6 +106,7 @@ struct HhdmResponse {
 
 #[used]
 #[unsafe(link_section = ".limine_requests")]
+/// Requests the higher-half direct-map response from Limine.
 static HHDM_REQUEST: HhdmRequest = HhdmRequest {
     id: make_id(HHDM_ID),
     revision: 0,
@@ -110,16 +121,19 @@ fn hhdm_offset() -> u64 {
     unsafe { (*ptr).offset }
 }
 
+/// Converts a physical address to a virtual one in the HHDM by adding an offset.
 fn hhdm_phys_to_virt(paddr: usize) -> usize {
     let off = hhdm_offset() as usize;
     off.saturating_add(paddr)
 }
+/// converts a virutal HHDM address to a physical address by removing the offset. 
 fn hhdm_virt_to_phys(vaddr: usize) -> usize {
     let off = hhdm_offset() as usize;
     vaddr.saturating_sub(off)
 }
 
 #[repr(C)]
+/// Contains the physical and virtual bases of the loaded kernel image.
 struct ExecutableAddressResponse {
     revision: u64,
     physical_base: u64, // physical address Limine loaded the kernel at
@@ -128,6 +142,7 @@ struct ExecutableAddressResponse {
 
 #[used]
 #[unsafe(link_section = ".limine_requests")]
+/// Requests the physical and virtual addresses of the loaded kernel image.
 static EXE_ADDRESS_REQUEST: ExecutableAddressRequest = ExecutableAddressRequest {
     id: make_id(EXE_ADDR_ID),
     revision: 0,
@@ -148,6 +163,7 @@ pub fn kernel_virt_base() -> u64 {
     unsafe { (*ptr).virtual_base }
 }
 
+/// Converts a kernel virtual address to its physical address.
 pub fn va_to_pa(addr: usize) -> usize {
     if addr & 0xFFFF_FFFF_0000_0000 == 0xFFFF_FFFF_0000_0000 {
         // Kernel executable address
@@ -168,6 +184,7 @@ pub fn va_to_pa(addr: usize) -> usize {
     }
 }
 
+/// Converts a physical address to a kernel virtual address.
 pub fn pa_to_va(addr: usize) -> usize {
     if addr & 0xFFFF_8000_0000_0000 == 0xFFFF_8000_0000_0000 {
         // Address is already a virtual address, so just return it.
@@ -182,6 +199,7 @@ pub fn pa_to_va(addr: usize) -> usize {
 }
 
 #[repr(C)]
+/// request for the boot hart to limine
 struct BspHartidRequest {
     id: [u64; 4],
     revision: u64,
@@ -189,6 +207,7 @@ struct BspHartidRequest {
 }
 
 #[repr(C)]
+/// response from limine for the boot hart. 
 struct BspHartidResponse {
     revision: u64,
     bsp_hartid: u64,
@@ -196,6 +215,7 @@ struct BspHartidResponse {
 
 #[used]
 #[unsafe(link_section = ".limine_requests")]
+/// asks limine for the hart that booted first. 
 static BSP_HARTID_REQUEST: BspHartidRequest = BspHartidRequest {
     id: make_id(BSP_HARTID_ID),
     revision: 0,
@@ -213,6 +233,7 @@ pub fn bsp_hartid() -> u64 {
 }
 
 #[repr(C)]
+/// tells limine how many bytes for the kernel stack
 struct StackSizeRequest {
     id: [u64; 4],
     revision: u64,
@@ -222,6 +243,8 @@ struct StackSizeRequest {
 
 #[used]
 #[unsafe(link_section = ".limine_requests")]
+/// make the request to limine for the bytes in the kernel stack, returns the response with the size
+/// as a pointer. 
 static STACK_SIZE_REQUEST: StackSizeRequest = StackSizeRequest {
     id: make_id(STACK_SIZE_ID),
     revision: 0,
@@ -230,12 +253,14 @@ static STACK_SIZE_REQUEST: StackSizeRequest = StackSizeRequest {
 };
 
 #[repr(C)]
+/// Requests Limine's kernel command line.
 struct CmdlineRequest {
     id: [u64; 4],
     revision: u64,
     response: AtomicPtr<CmdlineResponse>,
 }
 #[repr(C)]
+/// Contains the command-line string returned by Limine.
 struct CmdlineResponse {
     revision: u64,
     cmdline: *const u8,
@@ -243,12 +268,14 @@ struct CmdlineResponse {
 /// # Command Line Request
 #[used]
 #[unsafe(link_section = ".limine_requests")]
+/// Requests the kernel command line from Limine.
 static CMD_LINE_REQUEST: CmdlineRequest = CmdlineRequest {
     id: make_id(CMD_LINE_ID),
     revision: 0,
     response: AtomicPtr::new(core::ptr::null_mut()),
 };
 
+/// Returns the Limine command line as UTF-8 text, if available.
 pub fn cmd_line() -> Option<&'static str> {
     let ptr = CMD_LINE_REQUEST.response.load(Ordering::SeqCst);
     if ptr.is_null() {
@@ -261,7 +288,9 @@ pub fn cmd_line() -> Option<&'static str> {
     }
 }
 
+
 #[repr(C)]
+/// Requests Limine's physical memory map during boot.
 struct MemoryMapRequest {
     id: [u64; 4],
     revision: u64,
@@ -269,6 +298,7 @@ struct MemoryMapRequest {
 }
 
 #[repr(C)]
+/// Contains the memory-map entries that Limine returns to the kernel.
 struct MemoryMapResponse {
     revision: u64,
     entry_count: u64,
@@ -276,6 +306,7 @@ struct MemoryMapResponse {
 }
 
 #[repr(C)]
+/// Describes one physical memory region and its Limine-defined type.
 pub struct MemoryMapEntry {
     pub base: u64,
     pub length: u64,
@@ -294,14 +325,18 @@ pub mod memmap {
     pub const FRAMEBUFFER: u64 = 7;
     pub const RESERVED_MAPPED: u64 = 8;
 }
+
 #[used]
 #[unsafe(link_section = ".limine_requests")]
+/// makes a request to limine to get the physical memory locations and types of the physical memory. Then, it writes a pointer to
+/// response. This gives the kernel info on the number of regions and
 static MEMORY_MAP_REQUEST: MemoryMapRequest = MemoryMapRequest {
     id: make_id(MEMMAP_ID),
     revision: 0,
     response: AtomicPtr::new(core::ptr::null_mut()),
 };
 
+/// returns an iterator with the entires provided that are useable. 
 pub fn usable_memory_regions() -> impl Iterator<Item = (u64, u64)> {
     let ptr = MEMORY_MAP_REQUEST.response.load(Ordering::Acquire);
     assert!(!ptr.is_null(), "Limine did not provide memory map");
@@ -320,6 +355,7 @@ pub fn usable_memory_regions() -> impl Iterator<Item = (u64, u64)> {
     })
 }
 
+/// provides a map of all memory regions provided from the limine response. 
 pub fn all_memory_regions() -> impl Iterator<Item = &'static MemoryMapEntry> {
     let ptr = MEMORY_MAP_REQUEST.response.load(Ordering::Acquire);
     assert!(!ptr.is_null(), "Limine did not provide memory map");
@@ -332,6 +368,7 @@ pub fn all_memory_regions() -> impl Iterator<Item = &'static MemoryMapEntry> {
 }
 
 #[repr(C)]
+/// Requests the time at which Limine started the kernel.
 struct DateAtBootRequest {
     id: [u64; 4],
     revision: u64,
@@ -339,6 +376,7 @@ struct DateAtBootRequest {
 }
 
 #[repr(C)]
+/// Contains the boot time returned by Limine as a UNIX timestamp.
 struct DateAtBootResponse {
     revision: u64,
     timestamp: u64,
@@ -346,13 +384,14 @@ struct DateAtBootResponse {
 
 #[used]
 #[unsafe(link_section = ".limine_requests")]
+/// Requests the boot time from Limine.
 static DATE_AT_BOOT_REQUEST: DateAtBootRequest = DateAtBootRequest {
     id: make_id(DATE_ID),
     revision: 0,
     response: AtomicPtr::new(core::ptr::null_mut()),
 };
 
-/// Returns the first available framebuffer, if any.
+/// Returns the boot time as a UNIX timestamp, if Limine provides it.
 pub fn date_at_boot() -> Option<u64> {
     let ptr = DATE_AT_BOOT_REQUEST.response.load(Ordering::Acquire);
     if ptr.is_null() {
@@ -362,6 +401,7 @@ pub fn date_at_boot() -> Option<u64> {
 }
 
 #[repr(C)]
+/// Requests the address of the ACPI RSDP from Limine.
 struct RsdpRequest {
     id: [u64; 4],
     revision: u64,
@@ -369,13 +409,16 @@ struct RsdpRequest {
 }
 
 #[repr(C)]
+/// Contains the RSDP address returned by Limine.
 struct RsdpResponse {
     revision: u64,
-    address: u64, // virtual address (HHDM) of the RSDP in base revision 3+
+    // HHDM virtual address in base revisions 0-2 and 4+; physical in revision 3.
+    address: u64,
 }
 
 #[used]
 #[unsafe(link_section = ".limine_requests")]
+/// Requests the ACPI RSDP address from Limine.
 static RSDP_REQUEST: RsdpRequest = RsdpRequest {
     id: make_id(RSDP_ID),
     revision: 0,

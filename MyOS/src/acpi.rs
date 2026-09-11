@@ -81,24 +81,6 @@ impl Iterator for Xsdt {
     }
 }
 
-#[used]
-#[unsafe(link_section = ".limine_requests")]
-static RSDP_REQUEST: RsdpRequest = RsdpRequest {
-    id: make_id(RSDP_ID),
-    revision: 0,
-    response: AtomicPtr::new(core::ptr::null_mut()),
-};
-
-/// Returns None if ACPI is not available.
-pub fn rsdp_virt() -> Option<u64> {
-    let ptr = RSDP_REQUEST.response.load(Ordering::Acquire);
-    if ptr.is_null() {
-        return None;
-    }
-    let addr = unsafe { (*ptr).address };
-    if addr == 0 { None } else { Some(addr) }
-}
-
 pub fn get_entry(&self, which: usize) -> Option<SystemTableType> {
     if which >= self.num_entries() {
         return None;
