@@ -1,4 +1,9 @@
-//! allocation and deallocation
+//! # COSC562 Fall 2026 Operating System
+//!
+//! Allows for allocating and deallocating memory to the heap
+//!
+//! Jason Weeks - jweeks12
+//! September 13th, 2026
 
 
 /// WARNING: There is currently no heap allocator. Returns null until a heap is made.  

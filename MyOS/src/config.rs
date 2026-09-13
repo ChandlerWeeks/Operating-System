@@ -1,3 +1,10 @@
+//! # COSC562 Fall 2026 Operating System
+//!
+//! Contains kernel configuration information, such as max_harts.
+//!
+//! Jason Weeks - jweeks12
+//! September 13th, 2026
+
 /// # Maximum number of supported harts
 pub const MAX_HARTS: usize = 16;
 /// # Kernel Heap Address

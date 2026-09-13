@@ -1,4 +1,10 @@
-//! Kernek Output
+//! # COSC562 Fall 2026 Operating System
+//!
+//! Operating system entry point: Starts the kernel, and prints LIMINE/ACPI information.
+//!
+//! Jason Weeks - jweeks12
+//! September 13th, 2026
+
 /// # Kernel's Output
 pub struct KernelOut;
 /// implements the write trait from core::fmt for KernelOut, 

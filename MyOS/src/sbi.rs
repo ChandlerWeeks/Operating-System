@@ -1,4 +1,10 @@
-//! SBI Call Implementation and Use 
+//! # COSC562 Fall 2026 Operating System
+//!
+//! Model's the SBI call functionality. The SBI can be called to execute ecall instructions with
+//! elevated permissions.
+//!
+//! Jason Weeks - jweeks12
+//! September 13th, 2026
 
 /// SBI call: runs the RISC-V SBI, which is handled by SBI firmware. 
 /// Inputs:
