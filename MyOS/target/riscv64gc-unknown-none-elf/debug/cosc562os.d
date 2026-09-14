@@ -1,0 +1,1 @@
+/home/cosc562/myos/MyOS/target/riscv64gc-unknown-none-elf/debug/cosc562os: /home/cosc562/myos/MyOS/src/acpi.rs /home/cosc562/myos/MyOS/src/config.rs /home/cosc562/myos/MyOS/src/galloc.rs /home/cosc562/myos/MyOS/src/limine.rs /home/cosc562/myos/MyOS/src/main.rs /home/cosc562/myos/MyOS/src/print.rs /home/cosc562/myos/MyOS/src/sbi.rs

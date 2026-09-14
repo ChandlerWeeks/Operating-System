@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["_start","main","panic","print_address","print_frequency"],"macro":[["debugln",1],["print",1],["println",1]],"mod":["acpi","config","galloc","limine","print","sbi"]};

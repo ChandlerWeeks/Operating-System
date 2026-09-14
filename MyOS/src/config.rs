@@ -13,6 +13,10 @@ pub const MAX_HARTS: usize = 16;
 /// we are a higher-half kernel, all kernel virtual addresses should
 /// be higher-half too.
 pub const KERNEL_HEAP_ADDR: usize = 0xffff_cafe_0000_0000;
+
+/// This is the number of pages reserved for the kernel heap.
+pub const NUM_HEAP_PAGES: usize = 1024;
+
 /// # Kernel IO Addresses
 ///
 /// Map IO addresses to a different virtual address prefix.

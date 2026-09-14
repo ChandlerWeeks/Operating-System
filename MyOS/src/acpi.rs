@@ -65,13 +65,15 @@ impl Xsdt {
             virtual_address: rsdp_vaddr,
         };
 
-        let signature = unsafe { rsdp.read_byte_offset::<[u8; 8]>(0) };
-        let revision = unsafe { rsdp.read_byte_offset::<u8>(15) };
+        let rsdp_v1 = unsafe { rsdp.read_byte_offset::<RsdtRawV1>(0) };
+        let signature = unsafe { core::ptr::addr_of!(rsdp_v1.signature).read_unaligned() };
+        let revision = rsdp_v1.revision;
         if signature != *RSDP_SIGNATURE || revision < 2 {
             return None;
         }
 
-        let xsdt_paddr = unsafe { rsdp.read_byte_offset::<u64>(24) } as usize;
+        let rsdp_v2 = unsafe { rsdp.read_byte_offset::<RsdtRawV2>(0) };
+        let xsdt_paddr = unsafe { core::ptr::addr_of!(rsdp_v2.xsdt_addr).read_unaligned() } as usize;
         if xsdt_paddr == 0 {
             return None;
         }
@@ -88,10 +90,10 @@ impl Xsdt {
 
     /// Get the number of XSDT entries.
     pub fn num_entries(&self) -> usize {
-        let header = unsafe { self.vaddr.read_byte_offset::<DescriptionHeader>(0) };
-        let table_length = header.length as usize;
+        let xsdt = unsafe { self.vaddr.read_byte_offset::<XsdtRaw>(0) };
+        let table_length = unsafe { core::ptr::addr_of!(xsdt.header.length).read_unaligned() } as usize;
 
-        table_length.saturating_sub(36) / 8
+        table_length.saturating_sub(core::mem::size_of::<XsdtRaw>()) / 8
     }
 
     /// Get one XSDT entry by index.
@@ -99,7 +101,8 @@ impl Xsdt {
         if which >= self.num_entries() {
             return None;
         }
-        let addr = unsafe { self.vaddr.read_byte_offset::<u64>(36 + which * 8) };
+        let offset = core::mem::size_of::<XsdtRaw>() + which * 8;
+        let addr = unsafe { self.vaddr.read_byte_offset::<u64>(offset) };
         let structure = VirtualAddress::new_from_phys(addr as usize);
         let sig = unsafe { structure.read_byte_offset::<[u8; 4]>(0) };
         match &sig {
@@ -219,10 +222,6 @@ impl SystemTableType {
         }
     }
 }
-
-
-
-pub const KERNEL_IO_ADDR: usize = 0xffff_beef_0000_0000;
 
 /// MADT fixed fields. Controller entries follow this header.
 #[repr(C)]
@@ -404,8 +403,9 @@ impl Madt {
 
     /// Get one MADT entry by index.
     pub fn get_entry(&self, which: usize) -> Option<MadtStructure> {
-        let madt_header_length = unsafe { self.vaddr.read_byte_offset::<u32>(4) } as usize;
-        let mut offset = 44;
+        let madt = unsafe { self.vaddr.read_byte_offset::<MadtRaw>(0) };
+        let madt_header_length = unsafe { core::ptr::addr_of!(madt.header.length).read_unaligned() } as usize;
+        let mut offset = core::mem::size_of::<MadtRaw>();
         for _ in 0..which {
             if offset + 2 > madt_header_length {
                 return None;
@@ -440,7 +440,7 @@ impl Madt {
 }
 
 /// MCFG fixed fields. PCI ECAM entries follow this header.
-#[repr(C)]
+#[repr(C, packed)]
 pub struct McfgRaw {
     pub header: DescriptionHeader,
     pub reserved: u64,
@@ -459,8 +459,9 @@ impl Mcfg {
 
     /// Get the PCI ECAM allocation entry count.
     pub fn num_entries(&self) -> usize {
-        let length = unsafe { self.vaddr.read_byte_offset::<u32>(4) } as usize;
-        length.saturating_sub(44) / 16
+        let mcfg = unsafe { self.vaddr.read_byte_offset::<McfgRaw>(0) };
+        let length = unsafe { core::ptr::addr_of!(mcfg.header.length).read_unaligned() } as usize;
+        length.saturating_sub(core::mem::size_of::<McfgRaw>()) / 16
     }
 
     /// Get one PCI ECAM entry by index.
@@ -468,7 +469,8 @@ impl Mcfg {
         if which >= self.num_entries() {
             return None;
         }
-        let addr = self.vaddr.add(44 + which * 16);
+        let offset = core::mem::size_of::<McfgRaw>() + which * 16;
+        let addr = self.vaddr.add(offset);
         let entry = unsafe { addr.read_byte_offset::<McfgEntry>(0) };
         Some(entry)
     }
@@ -537,29 +539,39 @@ impl Spcr {
         Self { vaddr }
     }
 
+    /// Read the fixed SPCR fields.
+    fn raw(&self) -> SpcrRaw {
+        unsafe { self.vaddr.read_byte_offset::<SpcrRaw>(0) }
+    }
+
     /// Get the UART base address.
     pub fn base_address(&self) -> u64 {
-        unsafe { self.vaddr.read_byte_offset::<u64>(44) }
+        let spcr = self.raw();
+        unsafe { core::ptr::addr_of!(spcr.base_address.address).read_unaligned() }
     }
 
     /// Get the UART address-space ID.
     pub fn address_space_id(&self) -> u8 {
-        unsafe { self.vaddr.read_byte_offset::<u8>(40) }
+        let spcr = self.raw();
+        unsafe { core::ptr::addr_of!(spcr.base_address.address_space_id).read_unaligned() }
     }
 
     /// Get the UART interrupt type flags.
     pub fn interrupt_type(&self) -> u8 {
-        unsafe { self.vaddr.read_byte_offset::<u8>(52) }
+        let spcr = self.raw();
+        unsafe { core::ptr::addr_of!(spcr.interrupt_type).read_unaligned() }
     }
 
     /// Get the UART IRQ number.
     pub fn irq(&self) -> u8 {
-        unsafe { self.vaddr.read_byte_offset::<u8>(53) }
+        let spcr = self.raw();
+        unsafe { core::ptr::addr_of!(spcr.irq).read_unaligned() }
     }
 
     /// Get the UART clock frequency in hertz.
     pub fn uart_frequency(&self) -> u32 {
-        unsafe { self.vaddr.read_byte_offset::<u32>(76) }
+        let spcr = self.raw();
+        unsafe { core::ptr::addr_of!(spcr.uart_freq).read_unaligned() }
     }
 }
 
@@ -596,12 +608,14 @@ impl Rhct {
 
     /// Get the RISC-V timer frequency in hertz.
     pub fn time_base_freq(&self) -> u64 {
-        unsafe { self.vaddr.read_byte_offset::<u64>(40) }
+        let rhct = unsafe { self.vaddr.read_byte_offset::<RhctRaw>(0) };
+        unsafe { core::ptr::addr_of!(rhct.time_base_freq).read_unaligned() }
     }
 
     /// Get the RHCT node count.
     pub fn num_nodes(&self) -> u32 {
-        unsafe { self.vaddr.read_byte_offset::<u32>(48) }
+        let rhct = unsafe { self.vaddr.read_byte_offset::<RhctRaw>(0) };
+        unsafe { core::ptr::addr_of!(rhct.num_nodes).read_unaligned() }
     }
 
     /// Get the RHCT virtual address.

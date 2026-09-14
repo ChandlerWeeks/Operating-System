@@ -1,0 +1,9 @@
+(function() {
+    const implementors = Object.fromEntries([["cosc562os",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.0/core/marker/trait.Copy.html\" title=\"trait core::marker::Copy\">Copy</a> for <a class=\"struct\" href=\"cosc562os/acpi/struct.GenericAddress.html\" title=\"struct cosc562os::acpi::GenericAddress\">GenericAddress</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.0/core/marker/trait.Copy.html\" title=\"trait core::marker::Copy\">Copy</a> for <a class=\"enum\" href=\"cosc562os/sbi/enum.HartState.html\" title=\"enum cosc562os::sbi::HartState\">HartState</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.0/core/marker/trait.Copy.html\" title=\"trait core::marker::Copy\">Copy</a> for <a class=\"struct\" href=\"cosc562os/acpi/struct.MadtStructureHeader.html\" title=\"struct cosc562os::acpi::MadtStructureHeader\">MadtStructureHeader</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.0/core/marker/trait.Copy.html\" title=\"trait core::marker::Copy\">Copy</a> for <a class=\"struct\" href=\"cosc562os/acpi/struct.McfgEntry.html\" title=\"struct cosc562os::acpi::McfgEntry\">McfgEntry</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.0/core/marker/trait.Copy.html\" title=\"trait core::marker::Copy\">Copy</a> for <a class=\"struct\" href=\"cosc562os/acpi/struct.RhctNodeHeader.html\" title=\"struct cosc562os::acpi::RhctNodeHeader\">RhctNodeHeader</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.0/core/marker/trait.Copy.html\" title=\"trait core::marker::Copy\">Copy</a> for <a class=\"struct\" href=\"cosc562os/sbi/struct.WakeFrame.html\" title=\"struct cosc562os::sbi::WakeFrame\">WakeFrame</a>",0]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":59,"fragment_lengths":[1697]}

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"static":["MY_ALLOCATOR"],"struct":["MyGlobalAllocator"]};

@@ -56,10 +56,12 @@ unsafe extern "C" fn _start() -> ! {
     sbi::hart_stop();
 }
 
+/// function called by the entry point, used to break into the the kernel. 
 fn main() {
     // Print the ACPI hardware values before the system shuts down.
     clear_screen();
 
+    // Get the XSDT from the Limine RSDP response.
     let Some(rsdp_vaddr) = limine::rsdp_virt() else {
         debugln!("ACPI: Limine did not provide an RSDP address.");
         sbi::shutdown();
@@ -76,7 +78,9 @@ fn main() {
     let mut timer_frequency = None;
     let mut imsic_printed = false;
 
+    // Read each ACPI table and save the hardware values.
     for table in xsdt.iter() {
+        // Read the RISC-V interrupt controller data.
         if let Some(madt) = table.madt() {
             let mut index = 0;
             while let Some(entry) = madt.get_entry(index) {
@@ -93,7 +97,7 @@ fn main() {
                     MadtStructure::Imsic(imsic) if !imsic_printed => {
                         debugln!(
                             "IMSIC: version {}, supported IDs {}, guest IDs {}, hart index bits {}",
-                            imsic.version(),
+                            imsic.version(), 
                             imsic.num_sup_interrupt_ids(),
                             imsic.num_guest_interrupt_ids(),
                             imsic.hart_index_bits()
@@ -115,10 +119,12 @@ fn main() {
             }
         }
 
+        // Read the PCI configuration address.
         if let Some(mcfg) = table.mcfg() {
             ecam_address = mcfg.get_entry(0).map(|entry| entry.base);
         }
 
+        // Read the UART settings.
         if let Some(spcr) = table.spcr() {
             if spcr.address_space_id() == 0 {
                 let address = spcr.base_address();
@@ -135,12 +141,14 @@ fn main() {
             }
         }
 
+        // Read the RISC-V timer frequency.
         if let Some(rhct) = table.rhct() {
             timer_frequency = Some(rhct.time_base_freq());
             debugln!("RHCT: {:?}", rhct);
         }
     }
 
+    // Print the required PCI and timer values.
     print_address("PCI ECAM", ecam_address);
     print_frequency(timer_frequency);
 
