@@ -162,6 +162,8 @@ fn main() {
         debugln!("ACPI UART address: not found");
     }
 
+    symbols::print_elf_sections(); 
+
     sbi::shutdown();
 }
 
@@ -190,4 +192,6 @@ pub mod sbi;
 pub mod galloc;
 pub mod limine;
 pub mod config;
+pub mod symbols;
+pub mod mem;
 pub mod acpi; 

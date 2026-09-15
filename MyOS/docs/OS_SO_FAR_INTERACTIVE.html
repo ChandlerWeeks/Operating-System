@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive guide to the COSC 562 RISC-V kernel and its memory lab.">
+  <title>COSC 562 MyOS — Interactive System Guide</title>
+  <style>
+    :root { --ink:#e9eef7; --muted:#aab6c8; --paper:#0b1120; --panel:#131c2e; --panel-2:#19263d; --line:#2b3c59; --accent:#6ee7d0; --blue:#7db5ff; --amber:#f8cb6b; --red:#ff8f9b; --purple:#c5a6ff; --shadow:0 14px 38px #0007; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at 15% -10%,#1d4261 0,transparent 30rem),var(--paper); font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    a { color:var(--accent); }
+    button, input, select { font:inherit; }
+    button { cursor:pointer; color:var(--ink); border:1px solid var(--line); border-radius:.55rem; background:#1c2a42; padding:.55rem .8rem; }
+    button:hover, button:focus-visible { background:#284062; outline:2px solid var(--accent); outline-offset:2px; }
+    button.primary { color:#062522; background:var(--accent); border-color:var(--accent); font-weight:700; }
+    button.warn { color:#362100; background:var(--amber); border-color:var(--amber); }
+    code, kbd { padding:.1rem .3rem; border-radius:.25rem; background:#0a1425; color:#c6ddff; font: .92em ui-monospace,SFMono-Regular,Menlo,monospace; }
+    code.wrap { overflow-wrap:anywhere; }
+    header { padding:4.7rem max(1.25rem,calc((100vw - 1160px)/2)) 3.5rem; border-bottom:1px solid var(--line); }
+    .eyebrow { margin:0 0 .65rem; color:var(--accent); font-weight:700; letter-spacing:.08em; text-transform:uppercase; font-size:.78rem; }
+    h1,h2,h3 { line-height:1.12; }
+    h1 { max-width:900px; margin:.1rem 0 .8rem; font-size:clamp(2.3rem,6vw,4.5rem); letter-spacing:-.05em; }
+    h2 { margin:0 0 1rem; font-size:clamp(1.5rem,3.3vw,2.3rem); letter-spacing:-.025em; }
+    h3 { margin:.2rem 0 .55rem; font-size:1.06rem; }
+    p { margin:.55rem 0; }
+    .lead { max-width:800px; color:#d2dbe8; font-size:1.15rem; }
+    .chip { display:inline-block; margin:.4rem .4rem 0 0; padding:.25rem .55rem; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:.84rem; }
+    nav { position:sticky; top:0; z-index:5; overflow:auto; display:flex; gap:.25rem; padding:.55rem max(1rem,calc((100vw - 1160px)/2)); border-bottom:1px solid var(--line); background:#0b1120e8; backdrop-filter:blur(14px); white-space:nowrap; }
+    nav a { padding:.4rem .55rem; color:var(--muted); text-decoration:none; border-radius:.35rem; font-size:.9rem; }
+    nav a:hover { color:var(--ink); background:var(--panel); }
+    main { width:min(1160px,calc(100% - 2.5rem)); margin:auto; }
+    section { padding:4rem 0; border-bottom:1px solid var(--line); scroll-margin-top:3rem; }
+    .grid { display:grid; gap:1rem; }
+    .two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .four { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .card { min-width:0; padding:1.15rem; border:1px solid var(--line); border-radius:.8rem; background:linear-gradient(145deg,var(--panel),#101a2b); box-shadow:var(--shadow); }
+    .card p:last-child { margin-bottom:0; }
+    .state { display:inline-block; padding:.18rem .45rem; border-radius:999px; font-weight:800; letter-spacing:.03em; font-size:.72rem; text-transform:uppercase; }
+    .now { color:#06302a; background:var(--accent); } .next { color:#392503; background:var(--amber); } .not { color:#3a1120; background:var(--red); } .info { color:#1b1644; background:var(--purple); }
+    .note { padding:1rem 1.1rem; border-left:4px solid var(--blue); border-radius:0 .6rem .6rem 0; background:#13233b; }
+    .warning { border-color:#966915; background:#302713; }
+    .small { color:var(--muted); font-size:.9rem; }
+    .metric { color:var(--accent); font-size:1.8rem; font-weight:800; letter-spacing:-.04em; }
+    .table-wrap { overflow:auto; border:1px solid var(--line); border-radius:.7rem; }
+    table { width:100%; border-collapse:collapse; min-width:670px; background:#101a2a; }
+    th,td { padding:.7rem .8rem; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:#cfdbed; background:#19263b; font-size:.85rem; }
+    tr:last-child td { border-bottom:0; }
+    .flow { display:grid; grid-template-columns:repeat(6,minmax(130px,1fr)); align-items:center; gap:.45rem; overflow:auto; padding:.2rem 0; }
+    .flow > div { min-height:128px; padding:.8rem; border:1px solid var(--line); border-radius:.65rem; background:var(--panel); }
+    .flow > div:not(:last-child)::after { content:"→"; position:relative; left:calc(100% + .32rem); top:-54%; color:var(--accent); font-size:1.5rem; }
+    .step-controls { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin:1rem 0; }
+    .step-list { display:grid; gap:.65rem; }
+    .step { display:grid; grid-template-columns:2.4rem 1fr; gap:.8rem; padding:.75rem; border:1px solid var(--line); border-radius:.55rem; color:var(--muted); background:#101a2a; }
+    .step.active { color:var(--ink); border-color:var(--accent); background:#14342f; }
+    .step.done { color:#cce4df; border-color:#38786e; }
+    .step-num { display:grid; place-items:center; width:2rem; height:2rem; border-radius:50%; color:#061e1b; background:var(--muted); font-weight:800; }
+    .step.active .step-num,.step.done .step-num { background:var(--accent); }
+    .tool { padding:1.15rem; border:1px solid var(--line); border-radius:.8rem; background:#0e1829; }
+    .controls { display:flex; flex-wrap:wrap; gap:.75rem; align-items:end; margin:1rem 0; }
+    label { display:grid; gap:.28rem; color:#c8d4e6; font-weight:600; font-size:.9rem; }
+    input,select { min-width:0; padding:.48rem .55rem; color:var(--ink); border:1px solid var(--line); border-radius:.45rem; background:#091323; }
+    input[type="range"] { accent-color:var(--accent); padding:0; }
+    .output { min-height:2.7rem; padding:.7rem .85rem; border-radius:.5rem; border:1px solid #345272; color:#d6e9ff; background:#0b1b30; }
+    .memory { display:flex; flex-wrap:wrap; gap:.38rem; margin:1rem 0; }
+    .page { display:grid; place-items:center; width:3.2rem; height:3.2rem; border:1px solid var(--line); border-radius:.35rem; color:var(--muted); font:700 .72rem ui-monospace,monospace; }
+    .page.free { border-color:#3aa58f; color:#b8f7e8; background:#154a42; } .page.used { border-color:#c58b2b; color:#ffe1a0; background:#57421d; } .page.bad { border-color:#914656; color:#ffc0ca; background:#4d202c; }
+    .bar { display:flex; height:2rem; overflow:hidden; border:1px solid var(--line); border-radius:.4rem; background:#08111f; }
+    .bar span { display:grid; place-items:center; min-width:1.5rem; border-right:1px solid #09111f; color:#06201c; font-size:.75rem; font-weight:800; }
+    .segment-text { background:#f39b70; } .segment-tramp { background:#c5a6ff; } .segment-ro { background:#7db5ff; } .segment-data { background:#6ee7d0; } .segment-bss { background:#f8cb6b; }
+    .vpn { display:grid; grid-template-columns:repeat(4,1fr) 12px 1.5fr; gap:.35rem; align-items:stretch; margin:1rem 0; }
+    .vpn div { padding:.6rem .3rem; border:1px solid var(--line); border-radius:.35rem; text-align:center; background:#19263c; font:700 .82rem ui-monospace,monospace; }
+    .vpn .sep { padding-top:.6rem; border:0; background:none; }
+    .pte-walk { display:grid; grid-template-columns:repeat(4,1fr); gap:.55rem; }
+    .pte { padding:.7rem; border:1px solid var(--line); border-radius:.5rem; background:#15243a; }
+    .pte strong { display:block; color:var(--accent); }
+    .checklist { display:grid; gap:.45rem; }
+    .check { display:flex; gap:.6rem; align-items:flex-start; padding:.5rem; border-radius:.4rem; }
+    .check:hover { background:#18263a; }
+    .check input { width:1.05rem; height:1.05rem; margin-top:.15rem; accent-color:var(--accent); }
+    details { margin:.65rem 0; border:1px solid var(--line); border-radius:.5rem; background:#111c2e; }
+    summary { cursor:pointer; padding:.7rem .85rem; font-weight:700; } details > div { padding:0 .85rem .85rem; }
+    footer { padding:2rem max(1.25rem,calc((100vw - 1160px)/2)); color:var(--muted); }
+    @media (max-width:760px) { .two,.three,.four,.pte-walk { grid-template-columns:1fr; } .flow { grid-template-columns:minmax(190px,1fr); } .flow > div:not(:last-child)::after { content:"↓"; left:48%; top:1rem; } .vpn { grid-template-columns:repeat(2,1fr); } .vpn .sep { display:none; } }
+    @media print { body { background:#fff; color:#111; } nav,.step-controls,.controls,button { display:none!important; } .card,.tool,details,table { box-shadow:none; background:#fff; color:#111; } .small,.step { color:#333; } section { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">COSC 562 · repository snapshot · 14 September 2026</p>
+    <h1>A small RISC-V kernel that can inspect its machine.</h1>
+    <p class="lead">This guide explains what MyOS does now and what the Memory Lab adds next. Use the controls to trace boot, convert addresses, model allocation, and inspect an Sv48 virtual address. The widgets are teaching models. They do not read, start, or change the kernel.</p>
+    <span class="chip">Rust 2024</span><span class="chip">no_std · no_main</span><span class="chip">RISC-V 64 supervisor mode</span><span class="chip">Limine</span><span class="chip">QEMU virt · Sv48 requested</span>
+  </header>
+  <nav aria-label="Guide sections">
+    <a href="#now">Now</a><a href="#boot">Boot</a><a href="#firmware">Firmware</a><a href="#layout">Image</a><a href="#memory-lab">Memory Lab</a><a href="#allocator">Allocator</a><a href="#sv48">Sv48</a><a href="#map">Mapping</a><a href="#checklist">Checklist</a>
+  </nav>
+  <main>
+    <section id="now">
+      <p class="eyebrow">01 · Current behavior</p>
+      <h2>What the active kernel does</h2>
+      <div class="grid three">
+        <article class="card"><span class="state now">Active</span><h3>Boot and enter</h3><p>Limine enters <code>_start</code> in supervisor mode with paging enabled. The entry code sets <code>gp</code>, calls <code>main</code>, then stops the hart if <code>main</code> returns.</p></article>
+        <article class="card"><span class="state now">Active</span><h3>Print and diagnose</h3><p>The kernel clears the terminal and sends text one byte at a time through the SBI debug-console call. <code>debugln!</code> adds source location information.</p></article>
+        <article class="card"><span class="state now">Active</span><h3>Read ACPI tables</h3><p>The kernel obtains the RSDP from Limine, finds its XSDT, walks the XSDT, and reads selected ACPI data. It reports PCI ECAM, timer, interrupt-controller, and UART information when found.</p></article>
+        <article class="card"><span class="state now">Active</span><h3>Stop cleanly</h3><p>After the diagnostic pass, the current <code>main</code> calls SBI shutdown. It is an inspection kernel. It does not yet enter a scheduler, serve user programs, or keep running.</p></article>
+        <article class="card"><span class="state next">Prepared, not active</span><h3>CPU and lock support</h3><p><code>riscv.rs</code> contains CSR, TLB-flush, SATP, and PTE support. <code>sync.rs</code> contains a spin mutex and one-time initialization. <code>main.rs</code> does not yet include these modules.</p></article>
+        <article class="card"><span class="state not">Not complete</span><h3>Dynamic memory</h3><p><code>galloc.rs</code> installs a global allocator hook, but <code>alloc</code> returns a null pointer and <code>dealloc</code> does nothing. The heap must not be used yet.</p></article>
+      </div>
+      <div class="grid three" style="margin-top:1rem">
+        <article class="card"><span class="state now">Active</span><h3>Panic behavior</h3><p>The panic handler prints a tagged message and source location when available. It then waits forever with <code>wfi</code>. It does not allocate memory during panic handling.</p></article>
+        <article class="card"><span class="state info">Configured platform</span><h3>QEMU virt machine</h3><p>The run configuration selects 128 MiB RAM, four harts, AIA with APLIC and IMSIC, ACPI, and an RV64 CPU with Sv48 and Svpbmt enabled. Configuration is not proof that the kernel has a driver for each device.</p></article>
+        <article class="card"><span class="state now">Firmware boundary</span><h3>SBI services</h3><p>The active path uses the debug console and system shutdown. The SBI module also contains routines for hart start, stop, status, suspend, reboot, and specification version, but current <code>main</code> does not call most of them.</p></article>
+      </div>
+      <aside class="note warning"><strong>Important boundary.</strong> The ACPI reader is work in progress. It identifies known table signatures and reads packed fields with unaligned reads. This guide does not claim checksum validation or complete ACPI support.</aside>
+    </section>
+
+    <section id="boot">
+      <p class="eyebrow">02 · Current boot path</p>
+      <h2>Advance through the path that exists today</h2>
+      <p class="small">The final step is shutdown. This is the current source path, not the Memory Lab path.</p>
+      <div class="step-controls"><button id="bootPrev" aria-label="Previous boot step">← Previous</button><button id="bootNext" class="primary">Next step →</button><button id="bootReset">Reset</button><span id="bootCount" class="small" aria-live="polite"></span></div>
+      <div id="bootSteps" class="step-list"></div>
+      <div class="flow" aria-label="Current boot flow">
+        <div><span class="state now">1</span><h3>Limine</h3><p>Provides boot responses and enters S-mode.</p></div>
+        <div><span class="state now">2</span><h3>_start</h3><p>Sets global pointer. Calls <code>main</code>.</p></div>
+        <div><span class="state now">3</span><h3>ACPI</h3><p>Gets RSDP, then XSDT.</p></div>
+        <div><span class="state now">4</span><h3>Walk tables</h3><p>Reads MADT, MCFG, SPCR, and RHCT when present.</p></div>
+        <div><span class="state now">5</span><h3>Print</h3><p>Writes hardware values to the debug console.</p></div>
+        <div><span class="state now">6</span><h3>Shutdown</h3><p>Calls SBI system reset with the shutdown request.</p></div>
+      </div>
+    </section>
+
+    <section id="firmware">
+      <p class="eyebrow">03 · Firmware data and hardware discovery</p>
+      <h2>Limine supplies boot facts. ACPI describes the platform.</h2>
+      <div class="grid two">
+        <article class="card"><h3>Limine requests in this kernel</h3><p>The source requests an HHDM offset, a physical memory map, an RSDP address, kernel physical and virtual bases, BSP hart ID, stack size, command line, date, and Sv48 paging.</p><p>For RISC-V, the paging request requires Sv48 as the preferred, minimum, and maximum mode. Limine can therefore either provide Sv48 or fail the request.</p></article>
+        <article class="card"><h3>ACPI walk</h3><p><strong>RSDP → XSDT → table physical address → HHDM virtual address.</strong> The <code>RSD PTR </code> signature identifies the RSDP. Despite their current Rust names, <code>RsdtRawV1</code> and <code>RsdtRawV2</code> model RSDP layouts; they are not RSDT tables.</p><p>Each XSDT entry is one 64-bit physical address. The code converts it with <code>pa_to_va()</code> before it reads the table.</p></article>
+      </div>
+      <div class="table-wrap" style="margin-top:1rem"><table><thead><tr><th>Table</th><th>Current reader action</th><th>Value used by current <code>main</code></th></tr></thead><tbody>
+        <tr><td>MADT</td><td>Iterates variable-length RISC-V controller entries.</td><td>Reports RINTC hart / IMSIC base, IMSIC settings once, and one APLIC address.</td></tr>
+        <tr><td>MCFG</td><td>Reads PCI ECAM allocation entries.</td><td>Prints entry 0 base, if present.</td></tr>
+        <tr><td>SPCR</td><td>Reads UART generic-address and serial fields.</td><td>Uses the base only if address-space ID is 0, system memory. Prints its converted virtual address and settings.</td></tr>
+        <tr><td>RHCT</td><td>Reads fixed RISC-V hardware capability fields.</td><td>Prints timer frequency and a debug view of the table address.</td></tr>
+      </tbody></table></div>
+      <details><summary>Why packed ACPI fields need care</summary><div><p>ACPI layouts use byte positions from a firmware format. Rust structures use <code>repr(C, packed)</code> for these layouts. A packed field may not meet its normal alignment. The reader copies fields with <code>read_unaligned()</code> instead of forming an aligned Rust reference to them.</p></div></details>
+    </section>
+
+    <section id="layout">
+      <p class="eyebrow">04 · Kernel image and address spaces</p>
+      <h2>The linker defines the image. Limine maps the loaded parts.</h2>
+      <div class="card">
+        <div class="bar" aria-label="Conceptual kernel image layout"><span class="segment-text" style="flex:4">text</span><span class="segment-tramp" style="flex:1">trampoline</span><span class="segment-ro" style="flex:3">rodata + requests</span><span class="segment-data" style="flex:2">data</span><span class="segment-bss" style="flex:2">BSS</span></div>
+        <div class="grid two" style="margin-top:1rem"><div><h3>Loaded segments</h3><p><code>.text</code> and <code>.trampoline</code> are read and execute. <code>.rodata</code> is read only and contains the retained Limine requests. <code>.data</code> is read and write.</p></div><div><h3>BSS is different</h3><p><code>.bss</code> is page-aligned, <code>NOLOAD</code>, and <code>PT_NULL</code>. Its bytes are not loaded or mapped by Limine. The Memory Lab must map it, flush translations, then clear its exact byte range before Rust uses BSS data.</p></div></div>
+      </div>
+      <div class="tool" style="margin-top:1rem">
+        <h3>Address conversion model</h3><p class="small">This model follows the current helper rules. It uses sample kernel bases because a live Limine response exists only during boot.</p>
+        <div class="controls"><label>Address <input id="addressInput" value="0x80000000" inputmode="text" aria-describedby="addressResult"></label><label>Direction <select id="addressMode"><option value="p2v">physical → virtual</option><option value="v2p">virtual → physical</option></select></label><button id="convertAddress" class="primary">Convert</button></div>
+        <div id="addressResult" class="output" aria-live="polite"></div>
+      </div>
+      <div class="grid three" style="margin-top:1rem"><article class="card"><h3>HHDM</h3><p>For normal RAM, <code>pa_to_va()</code> adds the Limine HHDM offset. The kernel uses this virtual address to access physical memory.</p></article><article class="card"><h3>I/O range</h3><p>For physical addresses below <code>0x8000_0000</code>, <code>pa_to_va()</code> selects the I/O range that starts at <code>0xffff_beef_0000_0000</code>.</p></article><article class="card"><h3>Future heap range</h3><p>The planned heap virtual range starts at <code>0xffff_cafe_0000_0000</code>. The constant reserves an address; it does not create mappings.</p></article></div>
+    </section>
+
+    <section id="memory-lab">
+      <p class="eyebrow">05 · Memory Lab</p>
+      <h2>The lab turns boot memory into kernel-owned memory.</h2>
+      <p>The guide specifies seven dependent stages. The current repository provides several helpers, but the central memory-lab modules are not present yet.</p>
+      <div class="grid two">
+        <article class="card"><span class="state now">Provided now</span><h3>Inputs and building blocks</h3><p><code>limine.rs</code> exposes usable regions, HHDM conversion, and kernel bases. <code>config.rs</code> defines I/O and heap virtual bases plus 1,024 heap pages. <code>riscv.rs</code> supplies SATP and PTE constants. <code>sync.rs</code> supplies <code>Mutex</code> and <code>OnceLock</code>. The linker defines the six needed section-symbol pairs.</p></article>
+        <article class="card"><span class="state next">To add or complete</span><h3>Kernel memory ownership</h3><p>The guide calls for <code>symbols.rs</code>, <code>mem.rs</code>, <code>data.rs</code>, and <code>sv48.rs</code>. It also requires changes to <code>main.rs</code> and <code>galloc.rs</code>. No page allocator, heap allocator, kernel-data owner, or Sv48 editor is active now.</p></article>
+      </div>
+      <div class="tool" style="margin-top:1rem"><h3>Memory-lab boot order</h3><p class="small">Select a stage. Earlier stages are prerequisites. This is the required safe order from the guide.</p><div id="labTabs" class="step-controls" role="tablist" aria-label="Memory lab stages"></div><div id="labStage" class="card" aria-live="polite"></div></div>
+    </section>
+
+    <section id="allocator">
+      <p class="eyebrow">06 · Allocation models</p>
+      <h2>Pages provide backing memory. Heap chunks serve requests.</h2>
+      <div class="grid two">
+        <div class="tool"><h3>Free-list page allocator model</h3><p class="small">Two separate usable regions are shown. Each square is one 4 KiB page. The model allocates from a free list; it does not assume adjacent physical addresses.</p><div id="pageStats" class="output"></div><div id="pageGrid" class="memory" aria-label="Page allocator model"></div><div class="controls"><button id="pageAlloc" class="primary">Allocate page</button><button id="pageFree">Free last page</button><button id="pageReset">Reset model</button></div><p id="pageLog" class="small" aria-live="polite"></p></div>
+        <div class="tool"><h3>Chunk heap allocator model</h3><p class="small">The future heap has one continuous virtual range. Its 1,024 backing pages can be physically separate. This smaller display uses 32 allocation units to show alignment and holes.</p><div id="heapStats" class="output"></div><div id="heapGrid" class="memory" aria-label="Heap allocation model"></div><div class="controls"><label>Units (1 = 32 bytes) <input id="heapSize" type="range" min="1" max="8" value="3"></label><label>Alignment <select id="heapAlign"><option value="1">1 unit</option><option value="2">2 units</option><option value="4">4 units</option><option value="8">8 units</option></select></label><button id="heapAlloc" class="primary">Allocate chunk</button><button id="heapFree">Free last chunk</button><button id="heapReset">Reset model</button></div><p id="heapLog" class="small" aria-live="polite"></p></div>
+      </div>
+      <div class="grid three" style="margin-top:1rem"><article class="card"><h3>All usable regions</h3><p>Add every Limine <code>USABLE</code> region. A misaligned edge must not make a partly valid page. A region smaller than 4 KiB adds no page.</p></article><article class="card"><h3>Address rule</h3><p>A free-list node lives in a free page. Use an HHDM virtual address to read or write it. Convert an allocated page address with <code>va_to_pa()</code> before placing its PPN in a PTE.</p></article><article class="card"><h3>Heap rule</h3><p>The page allocator supplies 1,024 backing pages. The page table maps them in order into one virtual heap range. The chunk allocator then serves size and alignment requests inside that range.</p></article></div>
+    </section>
+
+    <section id="sv48">
+      <p class="eyebrow">07 · Sv48 page tables</p>
+      <h2>One virtual address selects four page-table entries.</h2>
+      <p>Sv48 uses four 9-bit virtual page number fields and a 12-bit page offset. Each page table has 512 entries. An entry stores a physical page number and control bits.</p>
+      <div class="tool"><div class="controls"><label>Virtual address <input id="vaInput" value="0xffff_cafe_0000_1234" inputmode="text"></label><button id="decodeVa" class="primary">Decode address</button></div><div id="vpnOutput" class="vpn" aria-live="polite"></div><div id="vaText" class="output"></div></div>
+      <div class="pte-walk" style="margin-top:1rem"><article class="pte"><strong>Level 3</strong><span>Use VPN[3]. A valid branch entry points to the next table.</span></article><article class="pte"><strong>Level 2</strong><span>Use VPN[2]. A leaf here can map a huge page.</span></article><article class="pte"><strong>Level 1</strong><span>Use VPN[1]. A leaf here can map a superpage.</span></article><article class="pte"><strong>Level 0</strong><span>Use VPN[0]. A leaf here normally maps one 4 KiB page.</span></article></div>
+      <details><summary>Map operation: the essential rules</summary><div><p>Read SATP, extract the root physical page number, form its physical address, and convert it with <code>pa_to_va()</code> before dereference. During a walk, an invalid intermediate entry needs a newly allocated and cleared page-table page. Store that page’s physical PPN in a valid branch entry. A branch has no read, write, or execute bit. A leaf has the target physical PPN and requested access bits. Flush the affected translation after a change.</p></div></details>
+      <details><summary>PTE permissions and memory type</summary><div><p>Read, write, and execute are PTE bits. <code>MemFlags</code> in the planned lab describes the requested access and leaf size; it is not itself a PTE. Memory-mapped devices need the I/O PBMT value and must not receive execute permission.</p></div></details>
+    </section>
+
+    <section id="map">
+      <p class="eyebrow">08 · Required mappings after memory initialization</p>
+      <h2>Map, flush, then use the memory.</h2>
+      <div class="grid three"><article class="card"><span class="state next">BSS</span><h3>Writable kernel state</h3><p>Round BSS bytes up to pages. Map each BSS virtual page to its matching kernel-image physical backing page with read/write access. Flush the batch. Then clear the exact BSS byte range.</p></article><article class="card"><span class="state next">I/O</span><h3>UART and RTC</h3><p>Obtain UART physical address from SPCR. Map it only when SPCR reports system memory. Map the allowed RTC physical address <code>0x10_1000</code>. Both use the I/O virtual range and I/O memory attribute.</p></article><article class="card"><span class="state next">Heap</span><h3>Continuous virtual heap</h3><p>Allocate exactly 1,024 page allocations. Map their physical pages in order starting at <code>KERNEL_HEAP_ADDR</code>, read/write. Flush. Then make the chunk allocator available to the global allocator.</p></article></div>
+      <div class="tool" style="margin-top:1rem"><h3>Boot-order safety check</h3><p>Click a stage to see why the next action must wait. This timeline includes the future memory-lab path, not the present diagnostic path.</p><div class="controls"><button id="safePrev">← Earlier</button><button id="safeNext" class="primary">Later →</button></div><div id="safeTimeline" class="step-list"></div></div>
+    </section>
+
+    <section id="checklist">
+      <p class="eyebrow">09 · Submission review</p>
+      <h2>Use this local checklist before submission.</h2>
+      <p class="small">The marks are stored only in this browser. They do not update repository files.</p>
+      <div id="checkProgress" class="output"></div><div id="checklistItems" class="checklist" style="margin-top:.8rem"></div>
+      <details><summary>Current-source summary for a reviewer</summary><div><p>The active crate root includes <code>print</code>, <code>sbi</code>, <code>galloc</code>, <code>limine</code>, <code>config</code>, and <code>acpi</code>. It does not include <code>riscv</code> or <code>sync</code>. The current <code>main</code> performs ACPI discovery and shuts down. The Memory Lab guide describes the next implementation stage and names the new modules to add.</p></div></details>
+    </section>
+  </main>
+  <footer>Source basis: <code>src/main.rs</code>, <code>src/limine.rs</code>, <code>src/acpi.rs</code>, <code>src/config.rs</code>, <code>src/galloc.rs</code>, <code>src/riscv.rs</code>, <code>src/sync.rs</code>, <code>riscv64gc-virt.ld</code>, <code>OPTIONS.sh</code>, and <code>docs/MEMORY_LAB_COMPLETION_GUIDE.md</code>. Generated as a static teaching document.</footer>
+  <script>
+    'use strict';
+    const hex = value => '0x' + value.toString(16).toUpperCase();
+    const parseHex = value => { const text = value.trim(); const n = BigInt(text); if (n < 0n || n > 0xFFFF_FFFF_FFFF_FFFFn) throw new Error('Enter an unsigned 64-bit address, such as 0x80000000.'); return n; };
+    const boot = [
+      ['Limine enters the kernel', 'Limine has enabled the requested Sv48 paging mode and enters the kernel in supervisor mode. It has populated responses to the requests that it can satisfy.'],
+      ['Set the global pointer', '<code>_start</code> loads <code>__global_pointer$</code> into <code>gp</code>. This supports gp-relative access to small data.'],
+      ['Clear the terminal', '<code>main()</code> calls <code>clear_screen()</code>. The function writes terminal escape bytes through SBI debug output.'],
+      ['Get RSDP and XSDT', 'The kernel asks Limine for an RSDP virtual address. It verifies <code>RSD PTR </code> and ACPI revision at least 2, reads the XSDT physical address, and converts that address to a virtual address.'],
+      ['Inspect ACPI tables', 'The XSDT iterator reads 64-bit physical addresses. The code recognizes MADT, MCFG, SPCR, and RHCT. It collects selected values and prints them.'],
+      ['Shut down', 'The current path calls <code>sbi::shutdown()</code>. SBI asks the firmware to power off. This source does not initialize a page allocator or heap before shutdown.']
+    ];
+    let bootIndex = 0;
+    function renderBoot() { document.getElementById('bootSteps').innerHTML = boot.map((item, i) => `<div class="step ${i < bootIndex ? 'done' : ''} ${i === bootIndex ? 'active' : ''}"><span class="step-num">${i + 1}</span><div><strong>${item[0]}</strong><p>${item[1]}</p></div></div>`).join(''); document.getElementById('bootCount').textContent = `Step ${bootIndex + 1} of ${boot.length}`; }
+    document.getElementById('bootPrev').onclick = () => { bootIndex = Math.max(0, bootIndex - 1); renderBoot(); };
+    document.getElementById('bootNext').onclick = () => { bootIndex = Math.min(boot.length - 1, bootIndex + 1); renderBoot(); };
+    document.getElementById('bootReset').onclick = () => { bootIndex = 0; renderBoot(); };
+    renderBoot();
+
+    const HHDM = 0xFFFF_8000_0000_0000n, IO = 0xFFFF_BEEF_0000_0000n, HEAP = 0xFFFF_CAFE_0000_0000n, KERNEL_V = 0xFFFF_FFFF_A000_0000n, KERNEL_P = 0x8000_0000n;
+    function convertAddress() { const out = document.getElementById('addressResult'); try { const addr = parseHex(document.getElementById('addressInput').value); const p2v = document.getElementById('addressMode').value === 'p2v'; let result, rule; if (p2v) { if (addr >= HHDM) { result = addr; rule = 'already an HHDM virtual address'; } else if (addr < 0x8000_0000n) { result = IO + addr; rule = 'low physical address: select the I/O virtual range'; } else { result = HHDM + addr; rule = 'RAM physical address: add the sample HHDM offset'; } } else { if ((addr & 0xFFFF_FFFF_0000_0000n) === 0xFFFF_FFFF_0000_0000n) { result = KERNEL_P + (addr - KERNEL_V); rule = 'kernel image: translate relative to sample kernel bases'; } else if ((addr & IO) === IO) { result = addr - IO; rule = 'I/O range: subtract KERNEL_IO_ADDR'; } else if ((addr & HEAP) === HEAP) { result = addr - HEAP; rule = 'heap range: subtract KERNEL_HEAP_ADDR'; } else if ((addr & 0xFFFF_8000_0000_0000n) === 0xFFFF_8000_0000_0000n) { result = addr - HHDM; rule = 'HHDM: subtract the sample HHDM offset'; } else { result = addr; rule = 'lower-half value: helper returns it as a physical address'; } } out.innerHTML = `<strong>${hex(addr)}</strong> → <strong>${hex(result)}</strong><br><span class="small">Rule: ${rule}. Kernel and HHDM values are illustrative where Limine normally supplies the base or offset at boot.</span>`; } catch (error) { out.textContent = error.message; } }
+    document.getElementById('convertAddress').onclick = convertAddress; convertAddress();
+
+    const lab = [
+      ['1. Linker sections', 'Create <code>symbols.rs</code>. Expose Text, Rodata, Data, Bss, Trampoline, and Kernel. Each range uses [start, end). Add <code>print_elf_sections()</code> as an early diagnostic.'],
+      ['2. Page allocator', 'Create <code>mem.rs</code>. Add every usable Limine region to one free list of complete 4 KiB pages. Its nodes live in free pages. Handle empty and misaligned regions safely.'],
+      ['3. Heap allocator', 'Complete the chunk allocator over a mapped continuous virtual heap. Keep page and heap types distinct. Do not use heap-backed Rust types until heap setup is complete.'],
+      ['4. KernelData', 'Create <code>data.rs</code>. One <code>OnceLock</code> owns page allocator, heap allocator, and current page-table root. Use a separate mutex and short closure access for each mutable resource.'],
+      ['5. Sv48 operations', 'Create <code>sv48.rs</code>. Add PTE and page-table structures. Read SATP, convert its root physical address through HHDM, and implement map, unmap, translate, access, and free.'],
+      ['6. Safe boot order', 'Build page allocator, obtain root, publish KernelData, map and clear BSS, map I/O, map heap backing, then enable normal heap use. Each action depends on the previous one.'],
+      ['7. Required mappings', 'Map BSS read/write, UART and RTC as I/O, and exactly 1,024 heap backing pages read/write. Flush translations after changes before relying on them.']
+    ];
+    let labIndex = 0;
+    function renderLab() { document.getElementById('labTabs').innerHTML = lab.map((x,i) => `<button role="tab" aria-selected="${i===labIndex}" class="${i===labIndex?'primary':''}" data-lab="${i}">${i+1}</button>`).join(''); document.getElementById('labStage').innerHTML = `<span class="state next">Planned stage</span><h3>${lab[labIndex][0]}</h3><p>${lab[labIndex][1]}</p>`; document.querySelectorAll('[data-lab]').forEach(b => b.onclick = () => { labIndex = Number(b.dataset.lab); renderLab(); }); }
+    renderLab();
+
+    const initialPages = ['A0','A1','A2','A3','A4','B0','B1','B2','B3']; let pages = [], allocations = [];
+    function resetPages() { pages = initialPages.map((name,i) => ({name, region:i<5?'A':'B', used:false})); allocations=[]; renderPages('Model reset. Region A and region B are separate.'); }
+    function renderPages(log) { const free=pages.filter(p=>!p.used).length; document.getElementById('pageStats').innerHTML = `<strong>${free}</strong> free pages · <strong>${pages.length}</strong> total pages · 4 KiB per page`; document.getElementById('pageGrid').innerHTML = pages.map(p => `<div class="page ${p.used?'used':'free'}" title="Region ${p.region}, ${p.used?'allocated':'free'}">${p.name}</div>`).join(''); document.getElementById('pageLog').textContent=log; }
+    document.getElementById('pageAlloc').onclick = () => { const page=pages.find(p=>!p.used); if(!page) return renderPages('Allocation failed: the free list is empty.'); page.used=true; allocations.push(page); renderPages(`Allocated ${page.name}. A valid allocation handle records its start and fixed 4 KiB length.`); };
+    document.getElementById('pageFree').onclick = () => { const page=allocations.pop(); if(!page) return renderPages('Nothing to free.'); page.used=false; renderPages(`Freed ${page.name} exactly once and returned it to the free list.`); };
+    document.getElementById('pageReset').onclick=resetPages; resetPages();
+
+    let heap = [], chunks = [];
+    function resetHeap() { heap=Array(32).fill(null); chunks=[]; renderHeap('Heap model reset.'); }
+    function renderHeap(log) { const free=heap.filter(x=>x===null).length; document.getElementById('heapStats').innerHTML = `<strong>${free}</strong> of 32 units free · virtual range stays continuous`; document.getElementById('heapGrid').innerHTML = heap.map((x,i) => `<div class="page ${x===null?'free':'used'}" title="unit ${i}: ${x===null?'free':'chunk '+x}">${x===null?i:x}</div>`).join(''); document.getElementById('heapLog').textContent=log; }
+    document.getElementById('heapAlloc').onclick=()=>{ const size=Number(document.getElementById('heapSize').value), align=Number(document.getElementById('heapAlign').value); let start=-1; for(let i=0;i<=heap.length-size;i++){if(i%align===0 && heap.slice(i,i+size).every(x=>x===null)){start=i;break;}} if(start<0) return renderHeap(`No ${size}-unit hole begins on a ${align}-unit boundary.`); const id=chunks.length+1; for(let i=start;i<start+size;i++)heap[i]=id; chunks.push({id,start,size}); renderHeap(`Allocated chunk ${id}: units ${start}–${start+size-1}, aligned to ${align}.`);};
+    document.getElementById('heapFree').onclick=()=>{const chunk=chunks.pop();if(!chunk)return renderHeap('Nothing to free.');for(let i=chunk.start;i<chunk.start+chunk.size;i++)heap[i]=null;renderHeap(`Freed chunk ${chunk.id}.`);}; document.getElementById('heapReset').onclick=resetHeap; resetHeap();
+
+    function decodeVa() { const out=document.getElementById('vpnOutput'), text=document.getElementById('vaText'); try { const va=parseHex(document.getElementById('vaInput').value); const fields=[(va>>39n)&0x1FFn,(va>>30n)&0x1FFn,(va>>21n)&0x1FFn,(va>>12n)&0x1FFn], off=va&0xFFFn; out.innerHTML=`<div>VPN[3]<br>${fields[0]}</div><div>VPN[2]<br>${fields[1]}</div><div>VPN[1]<br>${fields[2]}</div><div>VPN[0]<br>${fields[3]}</div><div class="sep">+</div><div>offset<br>${hex(off)}</div>`; text.innerHTML=`<strong>${hex(va)}</strong><br><span class="small">VPN fields select entry ${fields[0]}, ${fields[1]}, ${fields[2]}, and ${fields[3]}. The final offset is ${off} bytes inside the 4 KiB page.</span>`; } catch(error) { out.innerHTML='';text.textContent=error.message; } }
+    document.getElementById('decodeVa').onclick=decodeVa; decodeVa();
+
+    const safe=[
+      ['Create empty page allocator', 'There is no allocator state yet. The structure can exist without managed pages.'],
+      ['Add usable Limine pages', 'The allocator must own usable physical pages before the page-table code can create missing intermediate tables.'],
+      ['Wrap current SATP root', 'SATP holds a physical page number. Convert its physical address to HHDM virtual form before the kernel dereferences the root.'],
+      ['Publish KernelData', 'Store page allocator and root in the one-time global owner. A future heap allocator can be installed later.'],
+      ['Map, flush, clear BSS', 'BSS needs valid writable mappings before its bytes are zeroed. Clear only after the required mappings and translation flush.'],
+      ['Map UART and RTC', 'The UART address comes from SPCR and needs system-memory address space. Devices get I/O memory type and no execute permission.'],
+      ['Map 1,024 heap pages', 'The page allocator supplies backing pages. The virtual heap is continuous even if physical pages are not. Flush before creating the heap allocator.'],
+      ['Permit normal allocation', 'Only now can <code>GlobalAlloc</code> delegate allocation and deallocation to the initialized heap.']
+    ]; let safeIndex=0;
+    function renderSafe(){document.getElementById('safeTimeline').innerHTML=safe.map((s,i)=>`<div class="step ${i<safeIndex?'done':''} ${i===safeIndex?'active':''}"><span class="step-num">${i+1}</span><div><strong>${s[0]}</strong><p>${s[1]}</p></div></div>`).join('');}
+    document.getElementById('safePrev').onclick=()=>{safeIndex=Math.max(0,safeIndex-1);renderSafe();};document.getElementById('safeNext').onclick=()=>{safeIndex=Math.min(safe.length-1,safeIndex+1);renderSafe();};renderSafe();
+
+    const checklist=['Six linker-section types and print_elf_sections() exist.','Page allocator accepts all usable regions and handles no-memory cases safely.','Heap allocator honors size and alignment; global allocator no longer always returns null after setup.','One initialized KERNEL_DATA gives short, locked access to each mutable resource.','Sv48 map, unmap, translate, and access support required leaf sizes.','BSS is mapped, translation-flushed, and zeroed before BSS data is used.','UART and RTC are mapped in the I/O virtual range; UART comes from SPCR.','Exactly 1,024 pages back the heap at KERNEL_HEAP_ADDR.','Unsafe operations, conversion rules, and locking rules have code-specific comments.','cargo check succeeds from the MyOS repository root.'];
+    const saved=JSON.parse(localStorage.getItem('myos-memory-checklist')||'[]');
+    function renderChecklist(){document.getElementById('checklistItems').innerHTML=checklist.map((x,i)=>`<label class="check"><input type="checkbox" data-check="${i}" ${saved[i]?'checked':''}><span>${x}</span></label>`).join(''); document.querySelectorAll('[data-check]').forEach(x=>x.onchange=()=>{saved[Number(x.dataset.check)]=x.checked;localStorage.setItem('myos-memory-checklist',JSON.stringify(saved));renderChecklist();}); const count=saved.filter(Boolean).length;document.getElementById('checkProgress').innerHTML=`<strong>${count} / ${checklist.length}</strong> review items complete.`;}
+    renderChecklist();
+  </script>
+</body>
+</html>

@@ -227,24 +227,23 @@ must be continuous, and each page mapping supplies that result.
 
 Before submission, confirm all of these facts.
 
-- The six linker section types and print_elf_sections() exist.
-- The page allocator accepts all usable Limine regions and handles no-memory
+- [x] The six linker section types and print_elf_sections() exist.
+- [ ] The page allocator accepts all usable Limine regions and handles no-memory
   cases safely.
-- The heap allocator honors size and alignment, and the global allocator no
+- [ ] The heap allocator honors size and alignment, and the global allocator no
   longer always returns null after heap setup.
-- There is one initialized KERNEL_DATA, with short, locked access to each
+- [ ] There is one initialized KERNEL_DATA, with short, locked access to each
   mutable resource.
-- Sv48 mapping, unmapping, translation, and access work for the page sizes
+- [ ] Sv48 mapping, unmapping, translation, and access work for the page sizes
   required by the lab.
-- The BSS is mapped, TLB-flushed, and zeroed before BSS data is used.
-- UART and RTC are mapped in the I/O virtual range. The UART address comes from
+- [ ] The BSS is mapped, TLB-flushed, and zeroed before BSS data is used.
+- [ ] UART and RTC are mapped in the I/O virtual range. The UART address comes from
   SPCR; the allowed RTC physical address is 0x10_1000.
-- Exactly 1,024 pages back the heap at KERNEL_HEAP_ADDR.
-- Comments explain each unsafe operation, address conversion, and locking
+- [ ] Exactly 1,024 pages back the heap at KERNEL_HEAP_ADDR.
+- [ ] Comments explain each unsafe operation, address conversion, and locking
   rule. Comments must explain the code you submit; they must not replace it.
 
 Run cargo check from the repository root after each small stage. Do not start
 interactive QEMU for this lab unless the instructor asks for it. A successful
 source check does not prove that an address map is correct, so also keep the
 BSS test from the provided lab material until the BSS path is verified.
-
