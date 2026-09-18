@@ -195,3 +195,7 @@ pub mod config;
 pub mod symbols;
 pub mod mem;
 pub mod acpi; 
+pub mod sync;
+pub mod data;
+pub mod riscv;
+pub mod sv48;

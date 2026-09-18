@@ -1,5 +1,3 @@
-use crate::print;
-
 macro_rules! linker_section {
     ($struct_name:ident, $__section_start:ident, $__section_end:ident) => {
         pub struct $struct_name;

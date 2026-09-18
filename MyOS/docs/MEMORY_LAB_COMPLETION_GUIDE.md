@@ -209,7 +209,7 @@ kernel-image virtual address. Give these mappings read and write access. Flush
 after the batch, then clear the exact BSS byte range to zero. Do not clear BSS
 before it is mapped.
 
-Use the existing XSDT loop and Spcr reader to obtain the UART physical address.
+Use the existing XSDT loop and Spcr reader to obtain the UART physical s.
 Map it only when SPCR says that its address space is system memory. Map the RTC
 physical address that the lab permits. Both device mappings use the kernel I/O
 address range that starts at KERNEL_IO_ADDR; the supplied pa_to_va() gives that
@@ -228,7 +228,7 @@ must be continuous, and each page mapping supplies that result.
 Before submission, confirm all of these facts.
 
 - [x] The six linker section types and print_elf_sections() exist.
-- [ ] The page allocator accepts all usable Limine regions and handles no-memory
+- [x] The page allocator accepts all usable Limine regions and handles no-memory
   cases safely.
 - [ ] The heap allocator honors size and alignment, and the global allocator no
   longer always returns null after heap setup.
