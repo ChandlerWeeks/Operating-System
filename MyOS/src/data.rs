@@ -9,7 +9,17 @@ static KERNEL_DATA: OnceLock<KernelData> = OnceLock::new();
 
 /// Get the global kernel data reference.
 pub fn kdata() -> &'static KernelData {
-    KERNEL_DATA.get().expect("Kernel data not initialized")
+    try_kdata().expect("Kernel data not initialized")
+}
+
+/// Get kernel data when initialization has finished.
+pub fn try_kdata() -> Option<&'static KernelData> {
+    KERNEL_DATA.get()
+}
+
+/// Publish the kernel data once during early boot.
+pub fn init_kdata(data: KernelData) {
+    assert!(KERNEL_DATA.set(data).is_ok(), "Kernel data already initialized");
 }
 
 pub struct KernelData {
@@ -37,5 +47,11 @@ impl KernelData {
     pub fn with_heap_allocator<R>(&self, f: impl FnOnce(&mut HeapAllocator) -> R) -> R {
         let mut heap_allocator = self.heap_allocator.lock();
         f(&mut heap_allocator)
+    }
+
+    /// Lock the page table root for one short action.
+    pub fn with_page_table<R>(&self, f: impl FnOnce(&mut PageTableRoot) -> R) -> R {
+        let mut page_table_root = self.page_table_root.lock();
+        f(&mut page_table_root)
     }
 }

@@ -8,7 +8,13 @@
 #![no_main]
 
 use crate::acpi::MadtStructure;
+use crate::config::{KERNEL_HEAP_ADDR, NUM_HEAP_PAGES};
+use crate::data::{init_kdata, kdata, KernelData};
+use crate::mem::{HeapAllocator, PageAllocator};
 use crate::print::clear_screen;
+use crate::sv48::{MemFlags, PageTableRoot};
+
+const PAGE_SIZE: usize = 4096;
 
 extern crate alloc;
 
@@ -58,8 +64,8 @@ unsafe extern "C" fn _start() -> ! {
 
 /// function called by the entry point, used to break into the the kernel. 
 fn main() {
-    // Print the ACPI hardware values before the system shuts down.
     clear_screen();
+    initialize_memory();
 
     // Get the XSDT from the Limine RSDP response.
     let Some(rsdp_vaddr) = limine::rsdp_virt() else {
@@ -160,11 +166,88 @@ fn main() {
     }
     if uart_address.is_none() {
         debugln!("ACPI UART address: not found");
+    } else if let Some(address) = uart_address {
+        map_io_page(address as usize);
     }
+
+    // The QEMU virt RTC is at physical address 0x10_1000.
+    map_io_page(0x10_1000);
 
     symbols::print_elf_sections(); 
 
     sbi::shutdown();
+}
+
+/// Build memory services before code uses the Rust heap.
+fn initialize_memory() {
+    let mut page_allocator = PageAllocator::new();
+
+    for (base, length) in limine::usable_memory_regions() {
+        let end = base.checked_add(length).expect("usable memory region overflows");
+        let start_vaddr = limine::pa_to_va(base as usize);
+        let end_vaddr = limine::pa_to_va(end as usize);
+
+        // Free-list nodes live in pages, so use addresses that the kernel can write.
+        unsafe { page_allocator.add_region(start_vaddr, end_vaddr); }
+    }
+
+    let mut page_table_root = PageTableRoot::current();
+    let heap_flags = MemFlags::new().read().write().accessed().dirty();
+
+    for page_number in 0..NUM_HEAP_PAGES {
+        let page = page_allocator
+            .alloc_zeroed()
+            .expect("out of pages mapping the kernel heap");
+        let vaddr = KERNEL_HEAP_ADDR + page_number * PAGE_SIZE;
+        let paddr = limine::va_to_pa(page.start_addr());
+
+        page_table_root.map_unmanaged(vaddr, paddr, heap_flags, || {
+            page_allocator
+                .alloc_zeroed()
+                .expect("out of pages for a heap page table")
+        });
+    }
+    riscv::sfence_all();
+
+    let heap_bytes = NUM_HEAP_PAGES * PAGE_SIZE;
+    let heap_allocator = unsafe { HeapAllocator::new(KERNEL_HEAP_ADDR, heap_bytes) };
+    init_kdata(KernelData::new(page_allocator, heap_allocator, page_table_root));
+
+    map_and_clear_bss();
+}
+
+/// Map fresh pages for BSS, then clear its exact byte range.
+fn map_and_clear_bss() {
+    let start = symbols::Bss::start();
+    let size = symbols::Bss::size();
+    assert!(start & (PAGE_SIZE - 1) == 0, "BSS start is not page aligned");
+    let page_count = size
+        .checked_add(PAGE_SIZE - 1)
+        .expect("BSS size overflows")
+        / PAGE_SIZE;
+    let flags = MemFlags::new().read().write().accessed().dirty();
+
+    for page_number in 0..page_count {
+        let vaddr = start + page_number * PAGE_SIZE;
+        let page = kdata()
+            .with_page_allocator(|allocator| allocator.alloc_zeroed())
+            .expect("out of pages mapping BSS");
+        let paddr = limine::va_to_pa(page.start_addr());
+
+        kdata().with_page_table(|page_table| page_table.map(vaddr, paddr, flags));
+    }
+
+    riscv::sfence_all();
+    symbols::Bss::as_mut().fill(0);
+}
+
+/// Map the page that contains one device physical address.
+fn map_io_page(paddr: usize) {
+    let page_paddr = paddr & !(PAGE_SIZE - 1);
+    let vaddr = limine::pa_to_va(page_paddr);
+    let flags = MemFlags::new().read().write().io().accessed().dirty();
+
+    kdata().with_page_table(|page_table| page_table.map(vaddr, page_paddr, flags));
 }
 
 /// Prints one detected physical address.
